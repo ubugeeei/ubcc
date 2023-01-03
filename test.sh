@@ -1,9 +1,10 @@
 #!/bin/bash
+UBCC=./target/x86_64-unknown-linux-musl/debug/ubcc
 assert() {
   expected="$1"
   input="$2"
 
-  cargo run "$input" > tmp.s
+  ${UBCC} "$input" >tmp.s
   cc -o tmp tmp.s
   ./tmp
   actual="$?"
