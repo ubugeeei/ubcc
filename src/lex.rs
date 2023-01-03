@@ -46,7 +46,8 @@ impl<'a> Lexer<'a> {
                     let num = self.read_number();
                     Token::Integer(num)
                 } else {
-                    Token::Illegal(self.ch)
+                    self.report_error("invalid token");
+                    panic!();
                 }
             }
         }
@@ -74,6 +75,18 @@ impl<'a> Lexer<'a> {
         }
         self.position = self.read_position;
         self.read_position += 1;
+    }
+
+    fn report_error(&self, message: &str) {
+        let mut error = String::new();
+        error.push_str("\x1b[31merror\x1b[0m: ");
+        error.push_str(message);
+        error.push_str("\n");
+        error.push_str(self.input);
+        error.push_str("\n");
+        error.push_str(&" ".repeat(self.position));
+        error.push_str("\x1b[33m^\x1b[0m\n");
+        println!("{}", error);
     }
 }
 
