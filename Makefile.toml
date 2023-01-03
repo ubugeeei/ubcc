@@ -15,5 +15,6 @@ args = ["test"]
 
 [tasks.cb_test]
 script = [
+	"cargo make build",
 	"docker run -it -v $(pwd):/ws -w /ws compilerbook ./test.sh"
 ]
