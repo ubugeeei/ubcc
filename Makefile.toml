@@ -1,0 +1,19 @@
+[tasks.image]
+script = ["docker build -t compilerbook https://www.sigbus.info/compilerbook/Dockerfile"]
+
+[tasks.login]
+script = ["docker run --rm -it -v $(pwd):/ws compilerbook"]
+
+[tasks.build]
+install_crate = "cross"
+command = "cross"
+args = ["build", "--target", "x86_64-unknown-linux-musl"]
+
+[tasks.test]
+command = "cargo"
+args = ["test"]
+
+[tasks.cb_test]
+script = [
+	"docker run -it -v $(pwd):/ws -w /ws compilerbook ./test.sh"
+]
