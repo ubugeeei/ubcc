@@ -6,7 +6,7 @@ fn main() {
     }
 
     print!(".intel_syntax noprefix\n");
-    print!(".globl main\n");
+    print!(".global main\n");
     print!("main:\n");
     print!("  mov rax, {}\n", argv[1]);
     print!("  ret\n");
