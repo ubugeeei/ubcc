@@ -4,7 +4,6 @@ pub(crate) enum Token {
     Minus,
     Integer(i32),
     Eof,
-    Illegal(char),
 }
 
 pub(crate) struct Lexer<'a> {
