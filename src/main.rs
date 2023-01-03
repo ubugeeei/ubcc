@@ -1,3 +1,7 @@
+use crate::lex::Token;
+
+mod lex;
+
 fn main() {
     let argv = std::env::args().collect::<Vec<String>>();
     if argv.len() != 2 {
@@ -6,44 +10,34 @@ fn main() {
     }
 
     let input = argv[1].as_str();
+    let mut lexer = lex::Lexer::new(input);
 
     print!(".intel_syntax noprefix\n");
     print!(".global main\n");
     print!("main:\n");
 
-    let mut left_str = input;
-    let (num, tail) = strtol(&mut left_str);
+    let mut current_token = lexer.next();
+    let Token::Integer(int) = current_token else {
+        panic!("Invalid token: {:?}", current_token);
+    };
+    print!("  mov rax, {}\n", int);
 
-    print!("  mov rax, {}\n", num);
-    left_str = tail;
-
-    while left_str.len() > 0 {
-        let op = match left_str.chars().next().unwrap() {
-            '+' => "add",
-            '-' => "sub",
-            _ => panic!("Invalid operator: {:?}", left_str.chars().next()),
+    current_token = lexer.next();
+    while current_token != Token::Eof {
+        let op = match current_token {
+            Token::Plus => "add",
+            Token::Minus => "sub",
+            _ => {
+                panic!("Invalid token: {:?}", current_token);
+            }
         };
-        left_str = &left_str[1..];
-
-        let (num, tail) = strtol(&mut left_str);
-        left_str = tail;
-
-        print!(
-            "  {} rax, {}\n",
-            op,
-            num
-        );
+        current_token = lexer.next();
+        let Token::Integer(int) = current_token else {
+            panic!("Invalid token: {:?}", current_token);
+        };
+        print!("  {} rax, {}\n", op, int);
+        current_token = lexer.next();
     }
 
     print!("  ret\n");
-}
-
-/// **Split a string into two parts at the first non-numeric character.** <br/>
-/// return -> (head, tail)
-/// ```
-/// assert_eq!(strtol("123abc123"), ("123", "abc123"));
-/// ```
-fn strtol(s: &str) -> (&str, &str) {
-    let first_non_num = s.find(|c| !char::is_numeric(c)).unwrap_or(s.len());
-    s.split_at(first_non_num)
 }
