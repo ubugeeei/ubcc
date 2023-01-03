@@ -15,15 +15,15 @@ fn main() {
     let out = std::io::stdout();
     let mut out = out.lock();
 
-    let _ = write!(out, ".intel_syntax noprefix\n");
-    let _ = write!(out, ".global main\n");
-    let _ = write!(out, "main:\n");
+    write!(out, ".intel_syntax noprefix\n").unwrap();
+    write!(out, ".global main\n").unwrap();
+    write!(out, "main:\n").unwrap();
 
     let mut current_token = lexer.next();
     let Token::Integer(int) = current_token else {
         panic!("Invalid token: {:?}", current_token);
     };
-    let _ = write!(out, "  mov rax, {}\n", int);
+    write!(out, "  mov rax, {}\n", int).unwrap();
 
     current_token = lexer.next();
     while current_token != Token::Eof {
