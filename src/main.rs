@@ -1,4 +1,5 @@
 use crate::lex::Token;
+use std::io::Write;
 
 mod lex;
 
@@ -11,15 +12,18 @@ fn main() {
     let input = argv[1].as_str();
     let mut lexer = lex::Lexer::new(input);
 
-    print!(".intel_syntax noprefix\n");
-    print!(".global main\n");
-    print!("main:\n");
+    let out = std::io::stdout();
+    let mut out = out.lock();
+
+    let _ = write!(out, ".intel_syntax noprefix\n");
+    let _ = write!(out, ".global main\n");
+    let _ = write!(out, "main:\n");
 
     let mut current_token = lexer.next();
     let Token::Integer(int) = current_token else {
         panic!("Invalid token: {:?}", current_token);
     };
-    print!("  mov rax, {}\n", int);
+    let _ = write!(out, "  mov rax, {}\n", int);
 
     current_token = lexer.next();
     while current_token != Token::Eof {
@@ -34,9 +38,9 @@ fn main() {
         let Token::Integer(int) = current_token else {
             panic!("Invalid token: {:?}", current_token);
         };
-        print!("  {} rax, {}\n", op, int);
+        let _ = write!(out, "  {} rax, {}\n", op, int);
         current_token = lexer.next();
     }
 
-    print!("  ret\n");
+    let _ = write!(out, "  ret\n");
 }
