@@ -1,5 +1,5 @@
 use crate::lex::Token;
-use std::io::Write;
+use std::io::{BufWriter, Write};
 
 mod lex;
 
@@ -13,7 +13,7 @@ fn main() {
     let mut lexer = lex::Lexer::new(input);
 
     let out = std::io::stdout();
-    let mut out = out.lock();
+    let mut out = BufWriter::new(out.lock());
 
     write!(out, ".intel_syntax noprefix\n").unwrap();
     write!(out, ".global main\n").unwrap();
