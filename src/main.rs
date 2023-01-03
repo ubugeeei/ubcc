@@ -5,8 +5,7 @@ mod lex;
 fn main() {
     let argv = std::env::args().collect::<Vec<String>>();
     if argv.len() != 2 {
-        eprintln!("Invalid number of arguments");
-        std::process::exit(1);
+        panic!("Invalid number of arguments");
     }
 
     let input = argv[1].as_str();
