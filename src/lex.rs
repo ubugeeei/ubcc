@@ -2,6 +2,10 @@
 pub(crate) enum Token {
     Plus,
     Minus,
+    Slash,
+    Asterisk,
+    LParen,
+    RParen,
     Integer(i32),
     Eof,
 }
@@ -35,6 +39,22 @@ impl<'a> Lexer<'a> {
             '-' => {
                 self.read_char();
                 Token::Minus
+            }
+            '*' => {
+                self.read_char();
+                Token::Asterisk
+            }
+            '/' => {
+                self.read_char();
+                Token::Slash
+            }
+            '(' => {
+                self.read_char();
+                Token::LParen
+            }
+            ')' => {
+                self.read_char();
+                Token::RParen
             }
             '\0' => {
                 self.read_char();
@@ -95,6 +115,18 @@ mod test {
 
     #[test]
     fn test_next_token() {
+        {
+            let input = "1+-/*()";
+            let mut lexer = Lexer::new(input);
+            assert_eq!(lexer.next(), Token::Integer(1));
+            assert_eq!(lexer.next(), Token::Plus);
+            assert_eq!(lexer.next(), Token::Minus);
+            assert_eq!(lexer.next(), Token::Slash);
+            assert_eq!(lexer.next(), Token::Asterisk);
+            assert_eq!(lexer.next(), Token::LParen);
+            assert_eq!(lexer.next(), Token::RParen);
+            assert_eq!(lexer.next(), Token::Eof);
+        }
         {
             let input = "1 + 2";
             let mut lexer = Lexer::new(input);
