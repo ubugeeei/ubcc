@@ -160,4 +160,45 @@ mod test {
             assert_eq!(expr, expected);
         }
     }
+
+    #[test]
+    fn test_binary_expression_with_paren() {
+        let cases = vec![
+            (
+                "(5 + 5) * 5",
+                Expression::Binary(BinaryExpression::new(
+                    Expression::Binary(BinaryExpression::new(
+                        Expression::Integer(5),
+                        BinaryOperator::Plus,
+                        Expression::Integer(5),
+                    )),
+                    BinaryOperator::Asterisk,
+                    Expression::Integer(5),
+                )),
+            ),
+            (
+                "1 * (2 + 3) * 4",
+                Expression::Binary(BinaryExpression::new(
+                    Expression::Binary(BinaryExpression::new(
+                        Expression::Integer(1),
+                        BinaryOperator::Asterisk,
+                        Expression::Binary(BinaryExpression::new(
+                            Expression::Integer(2),
+                            BinaryOperator::Plus,
+                            Expression::Integer(3),
+                        )),
+                    )),
+                    BinaryOperator::Asterisk,
+                    Expression::Integer(4),
+                )),
+            ),
+        ];
+
+        for (input, expected) in cases {
+            let lexer = Lexer::new(input);
+            let mut parser = Parser::new(lexer);
+            let expr = parser.parse().unwrap();
+            assert_eq!(expr, expected);
+        }
+    }
 }
