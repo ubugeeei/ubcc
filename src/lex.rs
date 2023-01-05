@@ -10,17 +10,17 @@ pub(crate) enum Token {
     Eof,
 }
 
-pub(crate) struct Lexer {
-    input: String,
+pub(crate) struct Lexer<'a> {
+    input: &'a str,
     position: usize,
     read_position: usize,
     ch: char,
 }
 
-impl Lexer {
-    pub(crate) fn new(input: &str) -> Self {
+impl<'a> Lexer<'a> {
+    pub(crate) fn new(input: &'a str) -> Self {
         let mut lexer = Self {
-            input: input.to_string(),
+            input,
             position: 0,
             read_position: 0,
             ch: '\0',

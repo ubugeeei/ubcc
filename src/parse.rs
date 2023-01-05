@@ -11,14 +11,14 @@ enum Precedence {
     // Unary,
 }
 
-pub(crate) struct Parser {
-    lexer: Lexer,
+pub(crate) struct Parser<'a> {
+    lexer: Lexer<'a>,
     current_token: Token,
     peeked_token: Token,
 }
 
-impl Parser {
-    pub(crate) fn new(mut lexer: Lexer) -> Self {
+impl<'a> Parser<'a> {
+    pub(crate) fn new(mut lexer: Lexer<'a>) -> Self {
         let current_token = lexer.next();
         let peeked_token = lexer.next();
         Self {
