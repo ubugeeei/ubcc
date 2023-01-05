@@ -2,6 +2,7 @@
 pub(crate) enum Expression {
     Integer(i32),
     Binary(BinaryExpression),
+    Unary(UnaryExpression),
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -26,4 +27,27 @@ pub enum BinaryOperator {
     Minus,
     Slash,
     Asterisk,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) struct UnaryExpression {
+    expr: Box<Expression>,
+    op: UnaryOperator,
+    // prefix: bool,
+}
+impl UnaryExpression {
+    pub(crate) fn new(expr: Expression, op: UnaryOperator) -> Self {
+        Self {
+            expr: Box::new(expr),
+            op,
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum UnaryOperator {
+    Minus,
+    // Bang,
+    // Increment,
+    // Decrement,
 }

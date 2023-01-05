@@ -1,5 +1,5 @@
 use crate::{
-    ast::{BinaryExpression, BinaryOperator, Expression},
+    ast::{BinaryExpression, BinaryOperator, Expression, UnaryExpression, UnaryOperator},
     lex::{Lexer, Token},
 };
 
@@ -36,7 +36,7 @@ impl<'a> Parser<'a> {
         let mut expr = match self.current_token {
             Token::Integer(n) => Expression::Integer(n),
             Token::LParen => self.parse_grouped_expression()?,
-            // Token::Minus => self.parse_unary_expression(),
+            Token::Minus => self.parse_unary_expression()?,
             _ => return Err(format!("Invalid token: {:?}", self.current_token)),
         };
 
@@ -53,7 +53,19 @@ impl<'a> Parser<'a> {
         Ok(expr)
     }
 
-    // fn parse_unary_expression(&mut self) -> Result<Expression, String> {}
+    fn parse_unary_expression(&mut self) -> Result<Expression, String> {
+        match self.current_token {
+            Token::Minus => {
+                self.next_token();
+                let expr = self.parse_expression(Precedence::Product)?;
+                Ok(Expression::Unary(UnaryExpression::new(
+                    expr,
+                    UnaryOperator::Minus,
+                )))
+            }
+            _ => unreachable!(),
+        }
+    }
 
     fn parse_binary_expression(&mut self, left: Expression) -> Result<Expression, String> {
         let op = match self.current_token {
@@ -106,29 +118,90 @@ impl<'a> Parser<'a> {
 mod test {
     use super::*;
 
-    #[test]
-    fn test_parse_integer() {
-        let input = "5";
+    fn parse(input: &str) -> Expression {
         let lexer = Lexer::new(input);
         let mut parser = Parser::new(lexer);
-        let expr = parser.parse().unwrap();
-        assert_eq!(expr, Expression::Integer(5));
+        parser.parse().unwrap()
+    }
+
+    #[test]
+    fn test_parse_integer() {
+        let cases = vec![
+            ("5", Expression::Integer(5)),
+            ("10", Expression::Integer(10)),
+            (
+                "-10",
+                Expression::Unary(UnaryExpression::new(
+                    Expression::Integer(10),
+                    UnaryOperator::Minus,
+                )),
+            ),
+        ];
+
+        for (input, expected) in cases {
+            assert_eq!(parse(input), expected);
+        }
     }
 
     #[test]
     fn test_binary_expression() {
-        let input = "5 + 5";
-        let lexer = Lexer::new(input);
-        let mut parser = Parser::new(lexer);
-        let expr = parser.parse().unwrap();
-        assert_eq!(
-            expr,
-            Expression::Binary(BinaryExpression::new(
-                Expression::Integer(5),
-                BinaryOperator::Plus,
-                Expression::Integer(5)
-            ))
-        );
+        let case = vec![
+            (
+                "5 + 5",
+                Expression::Binary(BinaryExpression::new(
+                    Expression::Integer(5),
+                    BinaryOperator::Plus,
+                    Expression::Integer(5),
+                )),
+            ),
+            (
+                "5 - 5",
+                Expression::Binary(BinaryExpression::new(
+                    Expression::Integer(5),
+                    BinaryOperator::Minus,
+                    Expression::Integer(5),
+                )),
+            ),
+            (
+                "5 * 5",
+                Expression::Binary(BinaryExpression::new(
+                    Expression::Integer(5),
+                    BinaryOperator::Asterisk,
+                    Expression::Integer(5),
+                )),
+            ),
+            (
+                "5 / 5",
+                Expression::Binary(BinaryExpression::new(
+                    Expression::Integer(5),
+                    BinaryOperator::Slash,
+                    Expression::Integer(5),
+                )),
+            ),
+            // include unary
+            (
+                "-5 + 5",
+                Expression::Binary(BinaryExpression::new(
+                    Expression::Unary(UnaryExpression::new(
+                        Expression::Integer(5),
+                        UnaryOperator::Minus,
+                    )),
+                    BinaryOperator::Plus,
+                    Expression::Integer(5),
+                )),
+            ),
+            (
+                "5 + -5",
+                Expression::Binary(BinaryExpression::new(
+                    Expression::Integer(5),
+                    BinaryOperator::Plus,
+                    Expression::Unary(UnaryExpression::new(
+                        Expression::Integer(5),
+                        UnaryOperator::Minus,
+                    )),
+                )),
+            ),
+        ];
     }
 
     #[test]
