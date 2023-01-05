@@ -1,7 +1,9 @@
 use crate::lex::Token;
 use std::io::{BufWriter, Write};
 
+mod ast;
 mod lex;
+mod parse;
 
 fn main() {
     let argv = std::env::args().collect::<Vec<String>>();
