@@ -35,6 +35,7 @@ impl Parser {
     fn parse_expression(&mut self, precedence: Precedence) -> Result<Expression, String> {
         let mut expr = match self.current_token {
             Token::Integer(n) => Expression::Integer(n),
+            Token::LParen => self.parse_grouped_expression()?,
             // Token::Minus => self.parse_unary_expression(),
             _ => return Err(format!("Invalid token: {:?}", self.current_token)),
         };
@@ -71,6 +72,16 @@ impl Parser {
         self.next_token();
         let right = self.parse_expression(precedence)?;
         Ok(Expression::Binary(BinaryExpression::new(left, op, right)))
+    }
+
+    fn parse_grouped_expression(&mut self) -> Result<Expression, String> {
+        self.next_token();
+        let expr = self.parse_expression(Precedence::Lowest)?;
+        if self.peeked_token != Token::RParen {
+            return Err(format!("Expected ')', but got {:?}", self.peeked_token));
+        }
+        self.next_token();
+        Ok(expr)
     }
 
     fn peek_precedence(&self) -> Precedence {
@@ -190,6 +201,26 @@ mod test {
                     )),
                     BinaryOperator::Asterisk,
                     Expression::Integer(4),
+                )),
+            ),
+            (
+                "1 * (2 * (3 + 4)) * 5",
+                Expression::Binary(BinaryExpression::new(
+                    Expression::Binary(BinaryExpression::new(
+                        Expression::Integer(1),
+                        BinaryOperator::Asterisk,
+                        Expression::Binary(BinaryExpression::new(
+                            Expression::Integer(2),
+                            BinaryOperator::Asterisk,
+                            Expression::Binary(BinaryExpression::new(
+                                Expression::Integer(3),
+                                BinaryOperator::Plus,
+                                Expression::Integer(4),
+                            )),
+                        )),
+                    )),
+                    BinaryOperator::Asterisk,
+                    Expression::Integer(5),
                 )),
             ),
         ];
