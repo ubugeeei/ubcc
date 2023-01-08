@@ -10,15 +10,15 @@ pub(crate) enum Token {
     Eof,
 }
 
-pub(crate) struct Lexer<'a> {
-    input: &'a str,
+pub(crate) struct Lexer {
+    input: String,
     position: usize,
     read_position: usize,
     ch: char,
 }
 
-impl<'a> Lexer<'a> {
-    pub(crate) fn new(input: &'a str) -> Self {
+impl Lexer {
+    pub(crate) fn new(input: String) -> Self {
         let mut lexer = Self {
             input,
             position: 0,
@@ -116,7 +116,7 @@ mod test {
     #[test]
     fn test_next_token() {
         {
-            let input = "1+-/*()";
+            let input = String::from("1+-/*()");
             let mut lexer = Lexer::new(input);
             assert_eq!(lexer.next(), Token::Integer(1));
             assert_eq!(lexer.next(), Token::Plus);
@@ -128,7 +128,7 @@ mod test {
             assert_eq!(lexer.next(), Token::Eof);
         }
         {
-            let input = "1 + 2";
+            let input = String::from("1 + 2");
             let mut lexer = Lexer::new(input);
 
             assert_eq!(lexer.next(), Token::Integer(1));
@@ -138,7 +138,7 @@ mod test {
         }
 
         {
-            let input = "5+20-4";
+            let input = String::from("5+20-4");
             let mut lexer = Lexer::new(input);
 
             assert_eq!(lexer.next(), Token::Integer(5));

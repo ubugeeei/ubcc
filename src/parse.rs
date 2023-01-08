@@ -11,14 +11,14 @@ enum Precedence {
     // Unary,
 }
 
-pub(crate) struct Parser<'a> {
-    lexer: Lexer<'a>,
+pub(crate) struct Parser {
+    lexer: Lexer,
     current_token: Token,
     peeked_token: Token,
 }
 
-impl<'a> Parser<'a> {
-    pub(crate) fn new(mut lexer: Lexer<'a>) -> Self {
+impl Parser {
+    pub(crate) fn new(mut lexer: Lexer) -> Self {
         let current_token = lexer.next();
         let peeked_token = lexer.next();
         Self {
@@ -118,7 +118,7 @@ impl<'a> Parser<'a> {
 mod test {
     use super::*;
 
-    fn parse(input: &str) -> Expression {
+    fn parse(input: String) -> Expression {
         let lexer = Lexer::new(input);
         let mut parser = Parser::new(lexer);
         parser.parse().unwrap()
@@ -127,10 +127,10 @@ mod test {
     #[test]
     fn test_parse_integer() {
         let cases = vec![
-            ("5", Expression::Integer(5)),
-            ("10", Expression::Integer(10)),
+            (String::from("5"), Expression::Integer(5)),
+            (String::from("10"), Expression::Integer(10)),
             (
-                "-10",
+                String::from("-10"),
                 Expression::Unary(UnaryExpression::new(
                     Expression::Integer(10),
                     UnaryOperator::Minus,
@@ -147,7 +147,7 @@ mod test {
     fn test_binary_expression() {
         let case = vec![
             (
-                "5 + 5",
+                String::from("5 + 5"),
                 Expression::Binary(BinaryExpression::new(
                     Expression::Integer(5),
                     BinaryOperator::Plus,
@@ -155,7 +155,7 @@ mod test {
                 )),
             ),
             (
-                "5 - 5",
+                String::from("5 - 5"),
                 Expression::Binary(BinaryExpression::new(
                     Expression::Integer(5),
                     BinaryOperator::Minus,
@@ -163,7 +163,7 @@ mod test {
                 )),
             ),
             (
-                "5 * 5",
+                String::from("5 * 5"),
                 Expression::Binary(BinaryExpression::new(
                     Expression::Integer(5),
                     BinaryOperator::Asterisk,
@@ -171,7 +171,7 @@ mod test {
                 )),
             ),
             (
-                "5 / 5",
+                String::from("5 / 5"),
                 Expression::Binary(BinaryExpression::new(
                     Expression::Integer(5),
                     BinaryOperator::Slash,
@@ -180,7 +180,7 @@ mod test {
             ),
             // include unary
             (
-                "-5 + 5",
+                String::from("-5 + 5"),
                 Expression::Binary(BinaryExpression::new(
                     Expression::Unary(UnaryExpression::new(
                         Expression::Integer(5),
@@ -191,7 +191,7 @@ mod test {
                 )),
             ),
             (
-                "5 + -5",
+                String::from("5 + -5"),
                 Expression::Binary(BinaryExpression::new(
                     Expression::Integer(5),
                     BinaryOperator::Plus,
@@ -208,7 +208,7 @@ mod test {
     fn test_binary_expression_with_precedence() {
         let cases = vec![
             (
-                "5 + 5 * 5",
+                String::from("5 + 5 * 5"),
                 Expression::Binary(BinaryExpression::new(
                     Expression::Integer(5),
                     BinaryOperator::Plus,
@@ -220,7 +220,7 @@ mod test {
                 )),
             ),
             (
-                "1 * 2 + 3 * 4",
+                String::from("1 * 2 + 3 * 4"),
                 Expression::Binary(BinaryExpression::new(
                     Expression::Binary(BinaryExpression::new(
                         Expression::Integer(1),
@@ -249,7 +249,7 @@ mod test {
     fn test_binary_expression_with_paren() {
         let cases = vec![
             (
-                "(5 + 5) * 5",
+                String::from("(5 + 5) * 5"),
                 Expression::Binary(BinaryExpression::new(
                     Expression::Binary(BinaryExpression::new(
                         Expression::Integer(5),
@@ -261,7 +261,7 @@ mod test {
                 )),
             ),
             (
-                "1 * (2 + 3) * 4",
+                String::from("1 * (2 + 3) * 4"),
                 Expression::Binary(BinaryExpression::new(
                     Expression::Binary(BinaryExpression::new(
                         Expression::Integer(1),
@@ -277,7 +277,7 @@ mod test {
                 )),
             ),
             (
-                "1 * (2 * (3 + 4)) * 5",
+                String::from("1 * (2 * (3 + 4)) * 5"),
                 Expression::Binary(BinaryExpression::new(
                     Expression::Binary(BinaryExpression::new(
                         Expression::Integer(1),

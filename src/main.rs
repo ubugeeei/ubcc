@@ -2,17 +2,17 @@ use crate::lex::Token;
 use std::io::{BufWriter, Write};
 
 mod ast;
+mod codegen;
 mod lex;
 mod parse;
 
 fn main() {
-    let argv = std::env::args().collect::<Vec<String>>();
+    let argv = std::env::args().collect::<Vec<_>>();
     if argv.len() != 2 {
         panic!("Invalid number of arguments");
     }
 
-    let input = argv[1].as_str();
-    let mut lexer = lex::Lexer::new(input);
+    let mut lexer = lex::Lexer::new(argv[1].clone());
 
     let out = std::io::stdout();
     let mut out = BufWriter::new(out.lock());
