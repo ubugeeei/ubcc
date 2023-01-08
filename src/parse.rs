@@ -3,6 +3,12 @@ use crate::{
     lex::{Lexer, Token},
 };
 
+pub(crate) fn parse(input: String) -> Expression {
+    let lexer = Lexer::new(input);
+    let mut parser = Parser::new(lexer);
+    parser.parse().unwrap()
+}
+
 #[derive(Debug, PartialEq, Eq, PartialOrd)]
 enum Precedence {
     Lowest,
@@ -11,14 +17,14 @@ enum Precedence {
     // Unary,
 }
 
-pub(crate) struct Parser {
+struct Parser {
     lexer: Lexer,
     current_token: Token,
     peeked_token: Token,
 }
 
 impl Parser {
-    pub(crate) fn new(mut lexer: Lexer) -> Self {
+    fn new(mut lexer: Lexer) -> Self {
         let current_token = lexer.next();
         let peeked_token = lexer.next();
         Self {
@@ -117,12 +123,6 @@ impl Parser {
 #[cfg(test)]
 mod test {
     use super::*;
-
-    fn parse(input: String) -> Expression {
-        let lexer = Lexer::new(input);
-        let mut parser = Parser::new(lexer);
-        parser.parse().unwrap()
-    }
 
     #[test]
     fn test_parse_integer() {
