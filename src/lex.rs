@@ -6,6 +6,14 @@ pub(crate) enum Token {
     Asterisk,
     LParen,
     RParen,
+    Gt,
+    Lt,
+    GtEq,
+    LtEq,
+    Eq,
+    NotEq,
+    Not,
+    Assignment,
     Integer(i32),
     Eof,
 }
@@ -60,6 +68,46 @@ impl Lexer {
                 self.read_char();
                 Token::Eof
             }
+            '!' => {
+                if self.peek_char() == '=' {
+                    self.read_char();
+                    self.read_char();
+                    Token::NotEq
+                } else {
+                    self.read_char();
+                    Token::Not
+                }
+            }
+            '=' => {
+                if self.peek_char() == '=' {
+                    self.read_char();
+                    self.read_char();
+                    Token::Eq
+                } else {
+                    self.read_char();
+                    Token::Assignment
+                }
+            }
+            '<' => {
+                if self.peek_char() == '=' {
+                    self.read_char();
+                    self.read_char();
+                    Token::LtEq
+                } else {
+                    self.read_char();
+                    Token::Lt
+                }
+            }
+            '>' => {
+                if self.peek_char() == '=' {
+                    self.read_char();
+                    self.read_char();
+                    Token::GtEq
+                } else {
+                    self.read_char();
+                    Token::Gt
+                }
+            }
             _ => {
                 if self.ch.is_numeric() {
                     let num = self.read_number();
@@ -96,6 +144,14 @@ impl Lexer {
         self.read_position += 1;
     }
 
+    fn peek_char(&self) -> char {
+        if self.read_position >= self.input.len() {
+            '\0'
+        } else {
+            self.input.chars().nth(self.read_position).unwrap()
+        }
+    }
+
     fn report_error(&self, message: &str) {
         let mut error = String::new();
         error.push_str("\x1b[31merror\x1b[0m: ");
@@ -116,7 +172,7 @@ mod test {
     #[test]
     fn test_next_token() {
         {
-            let input = String::from("1+-/*()");
+            let input = String::from("1 + - / * ( ) = ! == != < > <= >=");
             let mut lexer = Lexer::new(input);
             assert_eq!(lexer.next(), Token::Integer(1));
             assert_eq!(lexer.next(), Token::Plus);
@@ -125,6 +181,14 @@ mod test {
             assert_eq!(lexer.next(), Token::Asterisk);
             assert_eq!(lexer.next(), Token::LParen);
             assert_eq!(lexer.next(), Token::RParen);
+            assert_eq!(lexer.next(), Token::Assignment);
+            assert_eq!(lexer.next(), Token::Not);
+            assert_eq!(lexer.next(), Token::Eq);
+            assert_eq!(lexer.next(), Token::NotEq);
+            assert_eq!(lexer.next(), Token::Lt);
+            assert_eq!(lexer.next(), Token::Gt);
+            assert_eq!(lexer.next(), Token::LtEq);
+            assert_eq!(lexer.next(), Token::GtEq);
             assert_eq!(lexer.next(), Token::Eof);
         }
         {
