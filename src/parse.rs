@@ -202,6 +202,10 @@ mod test {
                 )),
             ),
         ];
+
+        for (input, expected) in case {
+            assert_eq!(parse(input), expected);
+        }
     }
 
     #[test]
