@@ -7,9 +7,9 @@ pub(crate) enum Expression {
 
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) struct BinaryExpression {
-    lhs: Box<Expression>,
-    op: BinaryOperator,
-    rhs: Box<Expression>,
+    pub(crate) lhs: Box<Expression>,
+    pub(crate) op: BinaryOperator,
+    pub(crate) rhs: Box<Expression>,
 }
 impl BinaryExpression {
     pub(crate) fn new(lhs: Expression, op: BinaryOperator, rhs: Expression) -> Self {
