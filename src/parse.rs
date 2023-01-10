@@ -12,6 +12,8 @@ pub(crate) fn parse(input: String) -> Expression {
 #[derive(Debug, PartialEq, Eq, PartialOrd)]
 enum Precedence {
     Lowest,
+    Equals,
+    LessGreater,
     Sum,
     Product,
     // Unary,
@@ -48,7 +50,16 @@ impl Parser {
 
         while self.peeked_token != Token::Eof && precedence < self.peek_precedence() {
             expr = match self.peeked_token {
-                Token::Plus | Token::Minus | Token::Asterisk | Token::Slash => {
+                Token::Plus
+                | Token::Minus
+                | Token::Asterisk
+                | Token::Slash
+                | Token::Eq
+                | Token::NotEq
+                | Token::Lt
+                | Token::Gt
+                | Token::LtEq
+                | Token::GtEq => {
                     self.next_token();
                     self.parse_binary_expression(expr)?
                 }
@@ -79,6 +90,12 @@ impl Parser {
             Token::Minus => BinaryOperator::Minus,
             Token::Asterisk => BinaryOperator::Asterisk,
             Token::Slash => BinaryOperator::Slash,
+            Token::Gt => BinaryOperator::Gt,
+            Token::Lt => BinaryOperator::Lt,
+            Token::GtEq => BinaryOperator::GtEq,
+            Token::LtEq => BinaryOperator::LtEq,
+            Token::Eq => BinaryOperator::Eq,
+            Token::NotEq => BinaryOperator::NotEq,
             _ => {
                 return Err(format!(
                     "Expected binary operator, but got {:?}",
@@ -108,6 +125,8 @@ impl Parser {
 
     fn get_precedence(&self, token: Token) -> Precedence {
         match token {
+            Token::Eq | Token::NotEq => Precedence::Equals,
+            Token::Lt | Token::LtEq | Token::Gt | Token::GtEq => Precedence::LessGreater,
             Token::Plus | Token::Minus => Precedence::Sum,
             Token::Slash | Token::Asterisk => Precedence::Product,
             _ => Precedence::Lowest,
@@ -237,6 +256,26 @@ mod test {
                         BinaryOperator::Asterisk,
                         Expression::Integer(4),
                     )),
+                )),
+            ),
+            (
+                String::from("1 * 2 >= 3 * 4 == 0"),
+                Expression::Binary(BinaryExpression::new(
+                    Expression::Binary(BinaryExpression::new(
+                        Expression::Binary(BinaryExpression::new(
+                            Expression::Integer(1),
+                            BinaryOperator::Asterisk,
+                            Expression::Integer(2),
+                        )),
+                        BinaryOperator::GtEq,
+                        Expression::Binary(BinaryExpression::new(
+                            Expression::Integer(3),
+                            BinaryOperator::Asterisk,
+                            Expression::Integer(4),
+                        )),
+                    )),
+                    BinaryOperator::Eq,
+                    Expression::Integer(0),
                 )),
             ),
         ];

@@ -27,6 +27,12 @@ pub enum BinaryOperator {
     Minus,
     Slash,
     Asterisk,
+    Gt,
+    Lt,
+    GtEq,
+    LtEq,
+    Eq,
+    NotEq,
 }
 
 #[derive(Debug, PartialEq, Eq)]
