@@ -85,17 +85,17 @@ impl Parser {
     }
 
     fn parse_binary_expression(&mut self, left: Expression) -> Result<Expression, String> {
-        let op = match self.current_token {
-            Token::Plus => BinaryOperator::Plus,
-            Token::Minus => BinaryOperator::Minus,
-            Token::Asterisk => BinaryOperator::Asterisk,
-            Token::Slash => BinaryOperator::Slash,
-            Token::Gt => BinaryOperator::Gt,
-            Token::Lt => BinaryOperator::Lt,
-            Token::GtEq => BinaryOperator::GtEq,
-            Token::LtEq => BinaryOperator::LtEq,
-            Token::Eq => BinaryOperator::Eq,
-            Token::NotEq => BinaryOperator::NotEq,
+        let (op, swap) = match self.current_token {
+            Token::Plus => (BinaryOperator::Plus, false),
+            Token::Minus => (BinaryOperator::Minus, false),
+            Token::Asterisk => (BinaryOperator::Asterisk, false),
+            Token::Slash => (BinaryOperator::Slash, false),
+            Token::Lt => (BinaryOperator::Lt, false),
+            Token::Gt => (BinaryOperator::Lt, true),
+            Token::LtEq => (BinaryOperator::LtEq, false),
+            Token::GtEq => (BinaryOperator::LtEq, true),
+            Token::Eq => (BinaryOperator::Eq, false),
+            Token::NotEq => (BinaryOperator::NotEq, false),
             _ => {
                 return Err(format!(
                     "Expected binary operator, but got {:?}",
@@ -106,7 +106,13 @@ impl Parser {
         let precedence = self.get_precedence(self.current_token);
         self.next_token();
         let right = self.parse_expression(precedence)?;
-        Ok(Expression::Binary(BinaryExpression::new(left, op, right)))
+
+        // when swap is true, swap left and right
+        if swap {
+            Ok(Expression::Binary(BinaryExpression::new(right, op, left)))
+        } else {
+            Ok(Expression::Binary(BinaryExpression::new(left, op, right)))
+        }
     }
 
     fn parse_grouped_expression(&mut self) -> Result<Expression, String> {
@@ -263,15 +269,15 @@ mod test {
                 Expression::Binary(BinaryExpression::new(
                     Expression::Binary(BinaryExpression::new(
                         Expression::Binary(BinaryExpression::new(
-                            Expression::Integer(1),
-                            BinaryOperator::Asterisk,
-                            Expression::Integer(2),
-                        )),
-                        BinaryOperator::GtEq,
-                        Expression::Binary(BinaryExpression::new(
                             Expression::Integer(3),
                             BinaryOperator::Asterisk,
                             Expression::Integer(4),
+                        )),
+                        BinaryOperator::LtEq,
+                        Expression::Binary(BinaryExpression::new(
+                            Expression::Integer(1),
+                            BinaryOperator::Asterisk,
+                            Expression::Integer(2),
                         )),
                     )),
                     BinaryOperator::Eq,
