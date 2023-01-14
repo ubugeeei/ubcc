@@ -1,4 +1,4 @@
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub(crate) enum Token {
     Plus,
     Minus,
@@ -15,6 +15,7 @@ pub(crate) enum Token {
     Not,
     Assignment,
     Integer(i32),
+    Identifier(String),
     Eof,
 }
 
@@ -112,6 +113,11 @@ impl Lexer {
                 if self.ch.is_numeric() {
                     let num = self.read_number();
                     Token::Integer(num)
+                } else if self.ch >= 'a' && self.ch <= 'z' {
+                    // tokenize identifier when ch is a to z
+                    let c = self.ch;
+                    self.read_char();
+                    Token::Identifier(c.to_string())
                 } else {
                     self.report_error("invalid token");
                     panic!();
@@ -172,7 +178,7 @@ mod test {
     #[test]
     fn test_next_token() {
         {
-            let input = String::from("1 + - / * ( ) = ! == != < > <= >=");
+            let input = String::from("1 + - / * ( ) = ! == != < > <= >= a b z");
             let mut lexer = Lexer::new(input);
             assert_eq!(lexer.next(), Token::Integer(1));
             assert_eq!(lexer.next(), Token::Plus);
@@ -189,6 +195,9 @@ mod test {
             assert_eq!(lexer.next(), Token::Gt);
             assert_eq!(lexer.next(), Token::LtEq);
             assert_eq!(lexer.next(), Token::GtEq);
+            assert_eq!(lexer.next(), Token::Identifier(String::from("a")));
+            assert_eq!(lexer.next(), Token::Identifier(String::from("b")));
+            assert_eq!(lexer.next(), Token::Identifier(String::from("z")));
             assert_eq!(lexer.next(), Token::Eof);
         }
         {

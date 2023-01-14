@@ -103,7 +103,7 @@ impl Parser {
                 ))
             }
         };
-        let precedence = self.get_precedence(self.current_token);
+        let precedence = self.get_precedence(self.current_token.clone());
         self.next_token();
         let right = self.parse_expression(precedence)?;
 
@@ -126,7 +126,7 @@ impl Parser {
     }
 
     fn peek_precedence(&self) -> Precedence {
-        self.get_precedence(self.peeked_token)
+        self.get_precedence(self.peeked_token.clone())
     }
 
     fn get_precedence(&self, token: Token) -> Precedence {
@@ -140,7 +140,7 @@ impl Parser {
     }
 
     fn next_token(&mut self) {
-        self.current_token = self.peeked_token;
+        self.current_token = self.peeked_token.clone();
         self.peeked_token = self.lexer.next();
     }
 }
