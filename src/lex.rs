@@ -16,6 +16,7 @@ pub(crate) enum Token {
     Assignment,
     Integer(i32),
     Identifier(String),
+    SemiColon,
     Eof,
 }
 
@@ -109,6 +110,10 @@ impl Lexer {
                     Token::Gt
                 }
             }
+            ';' => {
+                self.read_char();
+                Token::SemiColon
+            }
             _ => {
                 if self.ch.is_numeric() {
                     let num = self.read_number();
@@ -178,7 +183,7 @@ mod test {
     #[test]
     fn test_next_token() {
         {
-            let input = String::from("1 + - / * ( ) = ! == != < > <= >= a b z");
+            let input = String::from("1 + - / * ( ) = ! == != < > <= >= ; a b z");
             let mut lexer = Lexer::new(input);
             assert_eq!(lexer.next(), Token::Integer(1));
             assert_eq!(lexer.next(), Token::Plus);
@@ -195,6 +200,7 @@ mod test {
             assert_eq!(lexer.next(), Token::Gt);
             assert_eq!(lexer.next(), Token::LtEq);
             assert_eq!(lexer.next(), Token::GtEq);
+            assert_eq!(lexer.next(), Token::SemiColon);
             assert_eq!(lexer.next(), Token::Identifier(String::from("a")));
             assert_eq!(lexer.next(), Token::Identifier(String::from("b")));
             assert_eq!(lexer.next(), Token::Identifier(String::from("z")));
