@@ -1,9 +1,12 @@
 use crate::{
-    ast::{BinaryExpression, BinaryOperator, Expression, UnaryExpression, UnaryOperator},
+    ast::{
+        BinaryExpression, BinaryOperator, Expression, Program, Statement, UnaryExpression,
+        UnaryOperator,
+    },
     lex::{Lexer, Token},
 };
 
-pub(crate) fn parse(input: String) -> Expression {
+pub(crate) fn parse(input: String) -> Program {
     let lexer = Lexer::new(input);
     let mut parser = Parser::new(lexer);
     parser.parse().unwrap()
@@ -16,7 +19,6 @@ enum Precedence {
     LessGreater,
     Sum,
     Product,
-    // Unary,
 }
 
 struct Parser {
@@ -36,8 +38,25 @@ impl Parser {
         }
     }
 
-    fn parse(&mut self) -> Result<Expression, String> {
-        self.parse_expression(Precedence::Lowest)
+    fn parse(&mut self) -> Result<Program, String> {
+        let mut statements = Vec::new();
+        while self.current_token != Token::Eof {
+            statements.push(self.parse_statement()?);
+            self.next_token();
+        }
+        Ok(Program::new(statements))
+    }
+
+    fn parse_statement(&mut self) -> Result<Statement, String> {
+        match self.current_token {
+            // TODO: other statements
+            _ => self.parse_expression_statement(),
+        }
+    }
+
+    fn parse_expression_statement(&mut self) -> Result<Statement, String> {
+        let expr = self.parse_expression(Precedence::Lowest)?;
+        Ok(Statement::Expression(expr))
     }
 
     fn parse_expression(&mut self, precedence: Precedence) -> Result<Expression, String> {
@@ -164,7 +183,12 @@ mod test {
         ];
 
         for (input, expected) in cases {
-            assert_eq!(parse(input), expected);
+            let lexer = Lexer::new(input);
+            let mut parser = Parser::new(lexer);
+            assert_eq!(
+                parser.parse_expression(Precedence::Lowest).unwrap(),
+                expected
+            );
         }
     }
 
@@ -229,7 +253,12 @@ mod test {
         ];
 
         for (input, expected) in case {
-            assert_eq!(parse(input), expected);
+            let lexer = Lexer::new(input);
+            let mut parser = Parser::new(lexer);
+            assert_eq!(
+                parser.parse_expression(Precedence::Lowest).unwrap(),
+                expected
+            );
         }
     }
 
@@ -289,8 +318,10 @@ mod test {
         for (input, expected) in cases {
             let lexer = Lexer::new(input);
             let mut parser = Parser::new(lexer);
-            let expr = parser.parse().unwrap();
-            assert_eq!(expr, expected);
+            assert_eq!(
+                parser.parse_expression(Precedence::Lowest).unwrap(),
+                expected
+            );
         }
     }
 
@@ -350,8 +381,10 @@ mod test {
         for (input, expected) in cases {
             let lexer = Lexer::new(input);
             let mut parser = Parser::new(lexer);
-            let expr = parser.parse().unwrap();
-            assert_eq!(expr, expected);
+            assert_eq!(
+                parser.parse_expression(Precedence::Lowest).unwrap(),
+                expected
+            );
         }
     }
 }
