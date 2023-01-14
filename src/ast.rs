@@ -15,6 +15,7 @@ pub(crate) enum Statement {
 
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) enum Expression {
+    LocalVariable(String),
     Integer(i32),
     Binary(BinaryExpression),
     Unary(UnaryExpression),
@@ -38,6 +39,7 @@ impl BinaryExpression {
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum BinaryOperator {
+    Assignment,
     Plus,
     Minus,
     Slash,

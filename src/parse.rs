@@ -16,6 +16,7 @@ pub(crate) fn parse(input: String) -> Program {
 #[derive(Debug, PartialEq, Eq, PartialOrd)]
 enum Precedence {
     Lowest,
+    Assignment,
     Equals,
     LessGreater,
     Sum,
@@ -65,16 +66,18 @@ impl Parser {
     }
 
     fn parse_expression(&mut self, precedence: Precedence) -> Result<Expression, String> {
-        let mut expr = match self.current_token {
+        let mut expr = match self.current_token.clone() {
             Token::Integer(n) => Expression::Integer(n),
             Token::LParen => self.parse_grouped_expression()?,
             Token::Minus => self.parse_unary_expression()?,
+            Token::Identifier(s) => Expression::LocalVariable(s),
             _ => return Err(format!("Invalid token: {:?}", self.current_token)),
         };
 
         while self.peeked_token != Token::Eof && precedence < self.peek_precedence() {
             expr = match self.peeked_token {
-                Token::Plus
+                Token::Assignment
+                | Token::Plus
                 | Token::Minus
                 | Token::Asterisk
                 | Token::Slash
@@ -110,6 +113,7 @@ impl Parser {
 
     fn parse_binary_expression(&mut self, left: Expression) -> Result<Expression, String> {
         let (op, swap) = match self.current_token {
+            Token::Assignment => (BinaryOperator::Assignment, false),
             Token::Plus => (BinaryOperator::Plus, false),
             Token::Minus => (BinaryOperator::Minus, false),
             Token::Asterisk => (BinaryOperator::Asterisk, false),
@@ -155,6 +159,7 @@ impl Parser {
 
     fn get_precedence(&self, token: Token) -> Precedence {
         match token {
+            Token::Assignment => Precedence::Assignment,
             Token::Eq | Token::NotEq => Precedence::Equals,
             Token::Lt | Token::LtEq | Token::Gt | Token::GtEq => Precedence::LessGreater,
             Token::Plus | Token::Minus => Precedence::Sum,
@@ -379,6 +384,41 @@ mod test {
                     )),
                     BinaryOperator::Asterisk,
                     Expression::Integer(5),
+                )),
+            ),
+        ];
+
+        for (input, expected) in cases {
+            let lexer = Lexer::new(input);
+            let mut parser = Parser::new(lexer);
+            assert_eq!(
+                parser.parse_expression(Precedence::Lowest).unwrap(),
+                expected
+            );
+        }
+    }
+
+    #[test]
+    fn test_parse_local_var() {
+        let cases = vec![
+            (
+                String::from("a"),
+                Expression::LocalVariable(String::from("a")),
+            ),
+            (
+                String::from("a + 2"),
+                Expression::Binary(BinaryExpression::new(
+                    Expression::LocalVariable(String::from("a")),
+                    BinaryOperator::Plus,
+                    Expression::Integer(2),
+                )),
+            ),
+            (
+                String::from("a = b"),
+                Expression::Binary(BinaryExpression::new(
+                    Expression::LocalVariable(String::from("a")),
+                    BinaryOperator::Assignment,
+                    Expression::LocalVariable(String::from("b")),
                 )),
             ),
         ];
