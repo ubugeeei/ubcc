@@ -1,3 +1,16 @@
+pub(crate) struct Program {
+    pub(crate) statements: Vec<Statement>,
+}
+impl Program {
+    pub(crate) fn new(statements: Vec<Statement>) -> Self {
+        Self { statements }
+    }
+}
+
+pub(crate) enum Statement {
+    Expression(Expression),
+}
+
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) enum Expression {
     Integer(i32),
