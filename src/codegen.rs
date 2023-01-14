@@ -1,13 +1,24 @@
-use crate::ast::{BinaryOperator, Expression};
+use crate::ast::{BinaryOperator, Expression, Program, Statement};
 
-pub(crate) fn gen(node: Expression) {
+pub(crate) fn gen(node: Program) {
+    for stmt in node.statements {
+        match stmt {
+            Statement::Expression(expr) => {
+                gen_expr(expr);
+            }
+        }
+    }
+
+}
+
+fn gen_expr(node: Expression) {
     match node {
         Expression::Integer(int) => {
             println!("  push {}", int);
         }
         Expression::Binary(bin) => {
-            gen(*bin.lhs);
-            gen(*bin.rhs);
+            gen_expr(*bin.lhs);
+            gen_expr(*bin.rhs);
             println!("  pop rdi");
             println!("  pop rax");
             match bin.op {
@@ -43,10 +54,9 @@ pub(crate) fn gen(node: Expression) {
                     println!("  cmp rax, rdi");
                     println!("  setne al");
                     println!("  movzb rax, al");
-                }
-                // _ => {
-                //     panic!("Invalid binary operator: {:?}", bin.op);
-                // }
+                } // _ => {
+                  //     panic!("Invalid binary operator: {:?}", bin.op);
+                  // }
             }
             println!("  push rax");
         }
