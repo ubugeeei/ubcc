@@ -51,7 +51,11 @@ impl Parser {
     fn parse_statement(&mut self) -> Result<Statement, String> {
         match self.current_token {
             // TODO: other statements
-            _ => self.parse_expression_statement(),
+            _ => {
+                let expr = self.parse_expression_statement();
+                self.next_token(); // skip ';'
+                expr
+            }
         }
     }
 
@@ -386,6 +390,31 @@ mod test {
                 parser.parse_expression(Precedence::Lowest).unwrap(),
                 expected
             );
+        }
+    }
+
+    #[test]
+    fn test_parse() {
+        let cases = vec![(
+            String::from("5;1+2*3;"),
+            Program::new(vec![
+                Statement::Expression(Expression::Integer(5)),
+                Statement::Expression(Expression::Binary(BinaryExpression::new(
+                    Expression::Integer(1),
+                    BinaryOperator::Plus,
+                    Expression::Binary(BinaryExpression::new(
+                        Expression::Integer(2),
+                        BinaryOperator::Asterisk,
+                        Expression::Integer(3),
+                    )),
+                ))),
+            ]),
+        )];
+
+        for (input, expected) in cases {
+            let lexer = Lexer::new(input);
+            let mut parser = Parser::new(lexer);
+            assert_eq!(parser.parse().unwrap(), expected);
         }
     }
 }

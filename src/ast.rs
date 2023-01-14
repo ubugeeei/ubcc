@@ -1,3 +1,4 @@
+#[derive(Debug, PartialEq, Eq)]
 pub(crate) struct Program {
     pub(crate) statements: Vec<Statement>,
 }
@@ -7,6 +8,7 @@ impl Program {
     }
 }
 
+#[derive(Debug, PartialEq, Eq)]
 pub(crate) enum Statement {
     Expression(Expression),
 }
