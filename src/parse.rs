@@ -6,6 +6,7 @@ use crate::{
     lex::{Lexer, Token},
 };
 
+// entry
 pub(crate) fn parse(input: String) -> Program {
     let lexer = Lexer::new(input);
     let mut parser = Parser::new(lexer);
