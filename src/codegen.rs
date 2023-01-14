@@ -2,13 +2,17 @@ use crate::ast::{BinaryOperator, Expression, Program, Statement};
 
 pub(crate) fn gen(node: Program) {
     for stmt in node.statements {
-        match stmt {
-            Statement::Expression(expr) => {
-                gen_expr(expr);
-            }
-        }
+        gen_stmt(stmt);
     }
 
+}
+
+fn gen_stmt(node: Statement) {
+    match node {
+        Statement::Expression(expr) => {
+            gen_expr(expr);
+        }
+    }
 }
 
 fn gen_expr(node: Expression) {
