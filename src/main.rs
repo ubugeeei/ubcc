@@ -31,10 +31,4 @@ fn main() {
     println!("");
 
     codegen::gen(ast);
-    println!("");
-
-    println!("  # epilogue");
-    println!("  mov rsp, rbp");
-    println!("  pop rbp");
-    println!("  ret");
 }

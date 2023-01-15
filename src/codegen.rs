@@ -33,6 +33,7 @@ impl CodeGenerator {
 
     fn gen_return(&self, node: &Expression) {
         self.gen_expr(node);
+        println!("  # epilogue");
         println!("  pop rax");
         println!("  mov rsp, rbp");
         println!("  pop rbp");
