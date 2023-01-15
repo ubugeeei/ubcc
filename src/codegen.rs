@@ -1,4 +1,4 @@
-use crate::ast::{BinaryOperator, Expression, Program, Statement};
+use crate::ast::{BinaryOperator, Expression, IfStatement, Program, Statement};
 
 // entry
 pub(crate) fn gen(node: Program) {
@@ -25,10 +25,21 @@ impl CodeGenerator {
 
     fn gen_stmt(&self, node: &Statement) {
         match node {
+            Statement::If(if_stmt) => self.gen_if(if_stmt),
             Statement::Expression(expr) => self.gen_expr(expr),
             Statement::Return(expr) => self.gen_return(expr),
-            // _ => todo!(),
+            _ => todo!(),
         }
+    }
+
+    fn gen_if(&self, if_stmt: &IfStatement) {
+        let label = format!("L_end_{}", rand::random::<u32>());
+        self.gen_expr(&if_stmt.condition);
+        println!("  pop rax");
+        println!("  cmp rax, 0");
+        println!("  je {}", label);
+        self.gen_stmt(&*if_stmt.consequence);
+        println!("{}:", label);
     }
 
     fn gen_return(&self, node: &Expression) {
