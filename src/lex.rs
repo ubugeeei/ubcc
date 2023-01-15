@@ -16,6 +16,7 @@ pub(crate) enum Token {
     Assignment,
     Integer(i32),
     Identifier(String),
+    Return,
     SemiColon,
     Eof,
 }
@@ -119,27 +120,14 @@ impl Lexer {
                     let num = self.consume_number();
                     Token::Integer(num)
                 } else if self.ch >= 'a' && self.ch <= 'z' {
-                    Token::Identifier(self.consume_word())
+                    let w = self.consume_word();
+                    self.word_into_token(w)
                 } else {
                     self.report_error("invalid token");
                     panic!();
                 }
             }
         }
-    }
-
-    fn skip_whitespace(&mut self) {
-        while self.ch.is_whitespace() {
-            self.consume_char();
-        }
-    }
-
-    fn consume_number(&mut self) -> i32 {
-        let position = self.position;
-        while self.ch.is_numeric() {
-            self.consume_char();
-        }
-        self.input[position..self.position].parse().unwrap()
     }
 
     fn consume_char(&mut self) {
@@ -152,12 +140,33 @@ impl Lexer {
         self.consume_position += 1;
     }
 
+    fn consume_number(&mut self) -> i32 {
+        let position = self.position;
+        while self.ch.is_numeric() {
+            self.consume_char();
+        }
+        self.input[position..self.position].parse().unwrap()
+    }
+
     fn consume_word(&mut self) -> String {
         let position = self.position;
         while self.ch.is_alphabetic() {
             self.consume_char();
         }
         self.input[position..self.position].to_string()
+    }
+
+    fn word_into_token(&self, word: String) -> Token {
+        match &*word {
+            "return" => Token::Return,
+            _ => Token::Identifier(word),
+        }
+    }
+
+    fn skip_whitespace(&mut self) {
+        while self.ch.is_whitespace() {
+            self.consume_char();
+        }
     }
 
     fn peek_char(&self) -> char {
@@ -188,7 +197,7 @@ mod test {
     #[test]
     fn test_next_token() {
         {
-            let input = String::from("1 + - / * ( ) = ! == != < > <= >= ; a b foo bar");
+            let input = String::from("1 + - / * ( ) = ! == != < > <= >= ; a b foo bar return");
             let mut lexer = Lexer::new(input);
             assert_eq!(lexer.next(), Token::Integer(1));
             assert_eq!(lexer.next(), Token::Plus);
@@ -210,6 +219,7 @@ mod test {
             assert_eq!(lexer.next(), Token::Identifier(String::from("b")));
             assert_eq!(lexer.next(), Token::Identifier(String::from("foo")));
             assert_eq!(lexer.next(), Token::Identifier(String::from("bar")));
+            assert_eq!(lexer.next(), Token::Return);
             assert_eq!(lexer.next(), Token::Eof);
         }
         {
