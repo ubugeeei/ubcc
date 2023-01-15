@@ -45,6 +45,9 @@ assert 1 '1>=0'
 assert 1 '1>=1'
 assert 0 '1>=2'
 
+assert 4 'a=2;a+2;'
+assert 7 'a=2;z=5;a+z;'
+
 # assert 55 '
 #   sum(m, n) {
 #     acc = 0;

@@ -18,6 +18,8 @@ impl CodeGenerator {
     fn gen(&self) {
         for stmt in self.ast.statements.iter() {
             self.gen_stmt(stmt);
+            println!("  # stack overflow prevention.");
+            println!("  pop rax");
         }
     }
 
@@ -33,6 +35,12 @@ impl CodeGenerator {
         match node {
             Expression::Integer(int) => {
                 println!("  push {}", int);
+            }
+            Expression::LocalVariable { .. } => {
+                self.gen_lval(node);
+                println!("  pop rax");
+                println!("  mov rax, [rax]");
+                println!("  push rax");
             }
             Expression::Binary(bin) => {
                 self.gen_expr(&*bin.lhs);
@@ -73,14 +81,39 @@ impl CodeGenerator {
                         println!("  setne al");
                         println!("  movzb rax, al");
                     }
-                    _ => {
-                        panic!("Invalid binary operator: {:?}", bin.op);
-                    }
+                    BinaryOperator::Assignment => {
+                        self.gen_lval(&*bin.lhs);
+                        self.gen_expr(&*bin.rhs);
+
+                        println!("  pop rdi");
+                        println!("  pop rax");
+                        println!("  mov [rax], rdi");
+                        println!("  push rdi");
+                    } //
+                      // _ => {
+                      //     panic!("Invalid binary operator: {:?}", bin.op);
+                      // }
                 }
                 println!("  push rax");
             }
             _ => {
                 panic!("Invalid node: {:?}", node);
+            }
+        }
+    }
+
+    fn gen_lval(&self, node: &Expression) {
+        match node {
+            Expression::LocalVariable { offset, .. } => {
+                println!("  mov rax, rbp");
+                println!("  sub rax, {}", offset);
+                println!("  push rax");
+            }
+            _ => {
+                panic!(
+                    "Invalid node: {:?}.\nleft node is not var on assignment expression.",
+                    node
+                );
             }
         }
     }

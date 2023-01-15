@@ -12,9 +12,22 @@ fn main() {
 
     println!(".intel_syntax noprefix");
     println!(".global main");
+    println!("");
+
     println!("main:");
+    println!("  # prologue");
+    println!("  # allocate 26 * 8 bytes for local variables");
+    println!("  push rbp");
+    println!("  mov rbp, rsp");
+    println!("  sub rsp, 208");
+    println!("");
+
     let ast = parse::parse(input);
     codegen::gen(ast);
-    println!("  pop rax");
+    println!("");
+
+    println!("  # epilogue");
+    println!("  mov rsp, rbp");
+    println!("  pop rbp");
     println!("  ret");
 }
