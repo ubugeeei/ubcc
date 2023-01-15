@@ -164,7 +164,7 @@ impl Parser {
         let offset = self.find_local_var(&name);
         match offset {
             Some(LVar { offset, .. }) => Ok(Expression::LocalVariable {
-                literal: name,
+                name,
                 offset: *offset,
             }),
             None => self.new_local_var(name),
@@ -178,10 +178,7 @@ impl Parser {
             offset,
         };
         self.locals.push(v);
-        Ok(Expression::LocalVariable {
-            literal: name,
-            offset,
-        })
+        Ok(Expression::LocalVariable { name, offset })
     }
 
     fn peek_precedence(&self) -> Precedence {
@@ -439,7 +436,7 @@ mod test {
             (
                 String::from("a"),
                 Expression::LocalVariable {
-                    literal: String::from("a"),
+                    name: String::from("a"),
                     offset: 8,
                 },
             ),
@@ -447,7 +444,7 @@ mod test {
                 String::from("a + 2"),
                 Expression::Binary(BinaryExpression::new(
                     Expression::LocalVariable {
-                        literal: String::from("a"),
+                        name: String::from("a"),
                         offset: 8,
                     },
                     BinaryOperator::Plus,
@@ -458,12 +455,12 @@ mod test {
                 String::from("a = b"),
                 Expression::Binary(BinaryExpression::new(
                     Expression::LocalVariable {
-                        literal: String::from("a"),
+                        name: String::from("a"),
                         offset: 8,
                     },
                     BinaryOperator::Assignment,
                     Expression::LocalVariable {
-                        literal: String::from("b"),
+                        name: String::from("b"),
                         offset: 16,
                     },
                 )),
@@ -472,12 +469,12 @@ mod test {
                 String::from("foo = bar"),
                 Expression::Binary(BinaryExpression::new(
                     Expression::LocalVariable {
-                        literal: String::from("foo"),
+                        name: String::from("foo"),
                         offset: 8,
                     },
                     BinaryOperator::Assignment,
                     Expression::LocalVariable {
-                        literal: String::from("bar"),
+                        name: String::from("bar"),
                         offset: 16,
                     },
                 )),
