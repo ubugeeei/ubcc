@@ -65,6 +65,12 @@ assert 54 "\
   return foo + z;\
 "
 
+assert 110 "\
+  foo = 10;\
+  if (foo / 2 == 2) z = 50; else z = 100;\
+  return foo + z;\
+"
+
 # assert 55 '
 #   sum(m, n) {
 #     acc = 0;

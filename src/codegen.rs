@@ -33,13 +33,30 @@ impl CodeGenerator {
     }
 
     fn gen_if(&self, if_stmt: &IfStatement) {
-        let label = format!("L_end_{}", rand::random::<u32>());
-        self.gen_expr(&if_stmt.condition);
-        println!("  pop rax");
-        println!("  cmp rax, 0");
-        println!("  je {}", label);
-        self.gen_stmt(&*if_stmt.consequence);
-        println!("{}:", label);
+        match if_stmt.alternative.as_ref() {
+            Some(alternative) => {
+                let label_else = format!("L_else_{}", rand::random::<u32>());
+                let label_end = format!("L_end_{}", rand::random::<u32>());
+                self.gen_expr(&if_stmt.condition);
+                println!("  pop rax");
+                println!("  cmp rax, 0");
+                println!("  je {}", label_else);
+                self.gen_stmt(&*if_stmt.consequence);
+                println!("  jmp {}", label_end);
+                println!("{}:", label_else);
+                self.gen_stmt(&*alternative);
+                println!("{}:", label_end);
+            }
+            None => {
+                let label = format!("L_end_{}", rand::random::<u32>());
+                self.gen_expr(&if_stmt.condition);
+                println!("  pop rax");
+                println!("  cmp rax, 0");
+                println!("  je {}", label);
+                self.gen_stmt(&*if_stmt.consequence);
+                println!("{}:", label);
+            }
+        }
     }
 
     fn gen_return(&self, node: &Expression) {
