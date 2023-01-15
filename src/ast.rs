@@ -11,7 +11,15 @@ impl Program {
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) enum Statement {
     Expression(Expression),
+    If(IfStatement),
     Return(Expression),
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) struct IfStatement {
+    pub(crate) condition: Expression,
+    pub(crate) consequence: Box<Statement>,
+    // pub(crate) alternative: Option<Box<Statement>>,
 }
 
 #[derive(Debug, PartialEq, Eq)]
