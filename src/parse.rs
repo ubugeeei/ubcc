@@ -13,6 +13,11 @@ pub(crate) fn parse(input: String) -> Program {
     parser.parse().unwrap()
 }
 
+struct LVar {
+    name: String,
+    offset: i32,
+}
+
 #[derive(Debug, PartialEq, Eq, PartialOrd)]
 enum Precedence {
     Lowest,
@@ -27,6 +32,7 @@ struct Parser {
     lexer: Lexer,
     current_token: Token,
     peeked_token: Token,
+    locals: Vec<LVar>,
 }
 
 impl Parser {
@@ -37,6 +43,7 @@ impl Parser {
             lexer,
             current_token,
             peeked_token,
+            locals: Vec::new(),
         }
     }
 
@@ -70,10 +77,7 @@ impl Parser {
             Token::Integer(n) => Expression::Integer(n),
             Token::LParen => self.parse_grouped_expression()?,
             Token::Minus => self.parse_unary_expression()?,
-            Token::Identifier(s) => Expression::LocalVariable {
-                literal: s.clone(),
-                offset: self.get_local_var_offset(&s),
-            },
+            Token::Identifier(s) => self.parse_identifier_expression(s)?,
             _ => return Err(format!("Invalid token: {:?}", self.current_token)),
         };
 
@@ -156,6 +160,30 @@ impl Parser {
         Ok(expr)
     }
 
+    fn parse_identifier_expression(&mut self, name: String) -> Result<Expression, String> {
+        let offset = self.find_local_var(&name);
+        match offset {
+            Some(LVar { offset, .. }) => Ok(Expression::LocalVariable {
+                literal: name,
+                offset: *offset,
+            }),
+            None => self.new_local_var(name),
+        }
+    }
+
+    fn new_local_var(&mut self, name: String) -> Result<Expression, String> {
+        let offset = self.locals.last().map(|l| l.offset).unwrap_or(0) + 8;
+        let v = LVar {
+            name: name.clone(),
+            offset,
+        };
+        self.locals.push(v);
+        Ok(Expression::LocalVariable {
+            literal: name,
+            offset,
+        })
+    }
+
     fn peek_precedence(&self) -> Precedence {
         self.get_precedence(self.peeked_token.clone())
     }
@@ -171,8 +199,8 @@ impl Parser {
         }
     }
 
-    fn get_local_var_offset(&self, name: &str) -> i32 {
-        (name.chars().nth(0).unwrap() as u8 - b'a' + 1) as i32 * 8
+    fn find_local_var(&self, name: &str) -> Option<&LVar> {
+        self.locals.iter().find(|s| s.name == name)
     }
 
     fn next_token(&mut self) {
@@ -474,24 +502,6 @@ mod test {
             let lexer = Lexer::new(input);
             let mut parser = Parser::new(lexer);
             assert_eq!(parser.parse().unwrap(), expected);
-        }
-    }
-
-    #[test]
-    fn test_get_local_var_offset() {
-        let cases = vec![
-            (String::from("a"), 8),
-            (String::from("b"), 16),
-            (String::from("c"), 24),
-            (String::from("d"), 32),
-            (String::from("y"), 200),
-            (String::from("z"), 208),
-        ];
-
-        for (input, expected) in cases {
-            let lexer = Lexer::new(String::new());
-            let parser = Parser::new(lexer);
-            assert_eq!(parser.get_local_var_offset(&input), expected);
         }
     }
 }

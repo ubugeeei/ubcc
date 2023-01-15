@@ -4,7 +4,7 @@ assert() {
   expected="$1"
   input="$2"
 
-  ${UBCC} "$input" > tmp.s
+  ${UBCC} "$input" >tmp.s
   cc -o tmp tmp.s
   ./tmp
   actual="$?"
@@ -50,6 +50,13 @@ assert 7 "\
   a = 2;\
   z = 5;\
   c = a + z;\
+  c;\
+"
+
+assert 7 "\
+  foo = 2;\
+  z = 5;\
+  c = foo + z;\
   c;\
 "
 
