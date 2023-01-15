@@ -26,8 +26,17 @@ impl CodeGenerator {
     fn gen_stmt(&self, node: &Statement) {
         match node {
             Statement::Expression(expr) => self.gen_expr(expr),
-            _ => todo!(),
+            Statement::Return(expr) => self.gen_return(expr),
+            // _ => todo!(),
         }
+    }
+
+    fn gen_return(&self, node: &Expression) {
+        self.gen_expr(node);
+        println!("  pop rax");
+        println!("  mov rsp, rbp");
+        println!("  pop rbp");
+        println!("  ret");
     }
 
     fn gen_expr(&self, node: &Expression) {
