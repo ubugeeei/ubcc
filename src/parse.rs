@@ -1,7 +1,7 @@
 use crate::{
     ast::{
         BinaryExpression, BinaryOperator, Expression, IfStatement, Program, Statement,
-        UnaryExpression, UnaryOperator,
+        UnaryExpression, UnaryOperator, WhileStatement,
     },
     lex::{Lexer, Token},
 };
@@ -60,6 +60,7 @@ impl Parser {
         // TODO: other statements
         match self.current_token {
             Token::If => self.parse_if_statement(),
+            Token::While => self.parse_while_statement(),
             Token::Return => self.parse_return_statement(),
             _ => self.parse_expression_statement(),
         }
@@ -104,6 +105,34 @@ impl Parser {
             consequence,
             alternative,
         )))
+    }
+
+    fn parse_while_statement(&mut self) -> Result<Statement, String> {
+        self.next_token(); // skip 'while'
+
+        if self.current_token == Token::LParen {
+            self.next_token();
+        } else {
+            return Err(format!(
+                "expected token '(' but got {:?}",
+                self.current_token
+            ));
+        }
+
+        let condition = self.parse_expression(Precedence::Lowest)?;
+
+        if self.peeked_token == Token::RParen {
+            self.next_token(); // skip current
+            self.next_token(); // skip ')'
+        } else {
+            return Err(format!(
+                "expected token ')' but got {:?}",
+                self.peeked_token
+            ));
+        }
+
+        let body = self.parse_statement()?;
+        Ok(Statement::While(WhileStatement::new(condition, body)))
     }
 
     fn parse_return_statement(&mut self) -> Result<Statement, String> {
@@ -614,6 +643,30 @@ mod test {
                 )),
             ),
         ];
+
+        for (input, expected) in cases {
+            let lexer = Lexer::new(input);
+            let mut parser = Parser::new(lexer);
+            assert_eq!(parser.parse_statement().unwrap(), expected);
+        }
+    }
+
+    #[test]
+    fn test_parse_while_statement() {
+        let cases = vec![(
+            String::from("while (a == 0) return 0; "),
+            Statement::While(WhileStatement::new(
+                Expression::Binary(BinaryExpression::new(
+                    Expression::LocalVariable {
+                        name: String::from("a"),
+                        offset: 8,
+                    },
+                    BinaryOperator::Eq,
+                    Expression::Integer(0),
+                )),
+                Statement::Return(Expression::Integer(0)),
+            )),
+        )];
 
         for (input, expected) in cases {
             let lexer = Lexer::new(input);
