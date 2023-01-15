@@ -17,6 +17,10 @@ pub(crate) enum Token {
     Integer(i32),
     Identifier(String),
     Return,
+    If,
+    Else,
+    While,
+    For,
     SemiColon,
     Eof,
 }
@@ -159,6 +163,10 @@ impl Lexer {
     fn word_into_token(&self, word: String) -> Token {
         match &*word {
             "return" => Token::Return,
+            "if" => Token::If,
+            "else" => Token::Else,
+            "while" => Token::While,
+            "for" => Token::For,
             _ => Token::Identifier(word),
         }
     }
@@ -197,7 +205,9 @@ mod test {
     #[test]
     fn test_next_token() {
         {
-            let input = String::from("1 + - / * ( ) = ! == != < > <= >= ; a b foo bar return");
+            let input = String::from(
+                "1 + - / * ( ) = ! == != < > <= >= ; a b foo bar return if else while for",
+            );
             let mut lexer = Lexer::new(input);
             assert_eq!(lexer.next(), Token::Integer(1));
             assert_eq!(lexer.next(), Token::Plus);
@@ -220,6 +230,10 @@ mod test {
             assert_eq!(lexer.next(), Token::Identifier(String::from("foo")));
             assert_eq!(lexer.next(), Token::Identifier(String::from("bar")));
             assert_eq!(lexer.next(), Token::Return);
+            assert_eq!(lexer.next(), Token::If);
+            assert_eq!(lexer.next(), Token::Else);
+            assert_eq!(lexer.next(), Token::While);
+            assert_eq!(lexer.next(), Token::For);
             assert_eq!(lexer.next(), Token::Eof);
         }
         {
