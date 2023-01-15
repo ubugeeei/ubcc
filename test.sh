@@ -77,6 +77,11 @@ assert 10 "\
   return i;\
 "
 
+assert 10 "\
+  for (i = 0; i < 10; i = i + 1) 0;\
+  return i;\
+"
+
 # assert 55 '
 #   sum(m, n) {
 #     acc = 0;

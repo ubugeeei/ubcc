@@ -1,4 +1,6 @@
-use crate::ast::{BinaryOperator, Expression, IfStatement, Program, Statement, WhileStatement};
+use crate::ast::{
+    BinaryOperator, Expression, ForStatement, IfStatement, Program, Statement, WhileStatement,
+};
 
 // entry
 pub(crate) fn gen(node: Program) {
@@ -27,6 +29,7 @@ impl CodeGenerator {
         match node {
             Statement::If(if_stmt) => self.gen_if(if_stmt),
             Statement::While(while_stmt) => self.gen_while(while_stmt),
+            Statement::For(for_stmt) => self.gen_for(for_stmt),
             Statement::Expression(expr) => self.gen_expr(expr),
             Statement::Return(expr) => self.gen_return(expr),
             _ => todo!(),
@@ -69,6 +72,41 @@ impl CodeGenerator {
         println!("  cmp rax, 0");
         println!("  je {label_end}");
         self.gen_stmt(&*while_stmt.body);
+        println!("  jmp {label_begin}");
+        println!("{label_end}:");
+    }
+
+    fn gen_for(&self, for_stmt: &ForStatement) {
+        let label_begin = format!("L_begin_{}", rand::random::<u32>());
+        let label_end = format!("L_end_{}", rand::random::<u32>());
+
+        // init
+        match for_stmt.init.as_ref() {
+            Some(init) => self.gen_stmt(init),
+            None => {}
+        }
+        println!("{label_begin}:");
+
+        // condition and jump
+        match for_stmt.condition.as_ref() {
+            Some(ref condition) => {
+                self.gen_expr(condition);
+                println!("  pop rax");
+                println!("  cmp rax, 0");
+                println!("  je {label_end}");
+            }
+            None => {}
+        }
+
+        // body
+        self.gen_stmt(for_stmt.body.as_ref());
+
+        // update
+        match for_stmt.post.as_ref() {
+            Some(update) => self.gen_stmt(update),
+            None => {}
+        }
+
         println!("  jmp {label_begin}");
         println!("{label_end}:");
     }
