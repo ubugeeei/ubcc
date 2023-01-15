@@ -13,6 +13,7 @@ pub(crate) enum Statement {
     Expression(Expression),
     If(IfStatement),
     While(WhileStatement),
+    For(ForStatement),
     Return(Expression),
 }
 
@@ -45,6 +46,29 @@ impl WhileStatement {
     pub(crate) fn new(condition: Expression, body: Statement) -> Self {
         Self {
             condition,
+            body: Box::new(body),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) struct ForStatement {
+    pub(crate) init: Option<Box<Statement>>,
+    pub(crate) condition: Option<Expression>,
+    pub(crate) post: Option<Box<Statement>>,
+    pub(crate) body: Box<Statement>,
+}
+impl ForStatement {
+    pub(crate) fn new(
+        init: Option<Statement>,
+        condition: Option<Expression>,
+        post: Option<Statement>,
+        body: Statement,
+    ) -> Self {
+        Self {
+            init: init.map(Box::new),
+            condition,
+            post: post.map(Box::new),
             body: Box::new(body),
         }
     }
