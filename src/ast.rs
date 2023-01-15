@@ -11,6 +11,7 @@ impl Program {
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) enum Statement {
     Expression(Expression),
+    Return(Expression),
 }
 
 #[derive(Debug, PartialEq, Eq)]
