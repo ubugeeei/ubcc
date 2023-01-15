@@ -119,10 +119,7 @@ impl Lexer {
                     let num = self.read_number();
                     Token::Integer(num)
                 } else if self.ch >= 'a' && self.ch <= 'z' {
-                    // tokenize identifier when ch is a to z
-                    let c = self.ch;
-                    self.read_char();
-                    Token::Identifier(c.to_string())
+                    Token::Identifier(self.read_word())
                 } else {
                     self.report_error("invalid token");
                     panic!();
@@ -155,6 +152,14 @@ impl Lexer {
         self.read_position += 1;
     }
 
+    fn read_word(&mut self) -> String {
+        let position = self.position;
+        while self.ch.is_alphabetic() {
+            self.read_char();
+        }
+        self.input[position..self.position].to_string()
+    }
+
     fn peek_char(&self) -> char {
         if self.read_position >= self.input.len() {
             '\0'
@@ -183,7 +188,7 @@ mod test {
     #[test]
     fn test_next_token() {
         {
-            let input = String::from("1 + - / * ( ) = ! == != < > <= >= ; a b z");
+            let input = String::from("1 + - / * ( ) = ! == != < > <= >= ; a b foo bar");
             let mut lexer = Lexer::new(input);
             assert_eq!(lexer.next(), Token::Integer(1));
             assert_eq!(lexer.next(), Token::Plus);
@@ -203,7 +208,8 @@ mod test {
             assert_eq!(lexer.next(), Token::SemiColon);
             assert_eq!(lexer.next(), Token::Identifier(String::from("a")));
             assert_eq!(lexer.next(), Token::Identifier(String::from("b")));
-            assert_eq!(lexer.next(), Token::Identifier(String::from("z")));
+            assert_eq!(lexer.next(), Token::Identifier(String::from("foo")));
+            assert_eq!(lexer.next(), Token::Identifier(String::from("bar")));
             assert_eq!(lexer.next(), Token::Eof);
         }
         {
