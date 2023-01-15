@@ -9,6 +9,7 @@ fn main() {
         panic!("Invalid number of arguments");
     }
     let input = argv[1].clone();
+    let ast = parse::parse(input);
 
     println!(".intel_syntax noprefix");
     println!(".global main");
@@ -22,7 +23,6 @@ fn main() {
     println!("  sub rsp, 208");
     println!("");
 
-    let ast = parse::parse(input);
     codegen::gen(ast);
     println!("");
 
