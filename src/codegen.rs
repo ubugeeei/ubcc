@@ -1,4 +1,4 @@
-use crate::ast::{BinaryOperator, Expression, IfStatement, Program, Statement};
+use crate::ast::{BinaryOperator, Expression, IfStatement, Program, Statement, WhileStatement};
 
 // entry
 pub(crate) fn gen(node: Program) {
@@ -26,6 +26,7 @@ impl CodeGenerator {
     fn gen_stmt(&self, node: &Statement) {
         match node {
             Statement::If(if_stmt) => self.gen_if(if_stmt),
+            Statement::While(while_stmt) => self.gen_while(while_stmt),
             Statement::Expression(expr) => self.gen_expr(expr),
             Statement::Return(expr) => self.gen_return(expr),
             _ => todo!(),
@@ -57,6 +58,19 @@ impl CodeGenerator {
                 println!("{}:", label);
             }
         }
+    }
+
+    fn gen_while(&self, while_stmt: &WhileStatement) {
+        let label_begin = format!("L_begin_{}", rand::random::<u32>());
+        let label_end = format!("L_end_{}", rand::random::<u32>());
+        println!("{label_begin}:");
+        self.gen_expr(&while_stmt.condition);
+        println!("  pop rax");
+        println!("  cmp rax, 0");
+        println!("  je {label_end}");
+        self.gen_stmt(&*while_stmt.body);
+        println!("  jmp {label_begin}");
+        println!("{label_end}:");
     }
 
     fn gen_return(&self, node: &Expression) {

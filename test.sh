@@ -71,6 +71,12 @@ assert 110 "\
   return foo + z;\
 "
 
+assert 10 "\
+  i = 0;\
+  while (i < 10) i = i + 1;\
+  return i;\
+"
+
 # assert 55 '
 #   sum(m, n) {
 #     acc = 0;
