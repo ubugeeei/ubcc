@@ -12,6 +12,7 @@ impl Program {
 pub(crate) enum Statement {
     Expression(Expression),
     If(IfStatement),
+    While(WhileStatement),
     Return(Expression),
 }
 
@@ -31,6 +32,20 @@ impl IfStatement {
             condition,
             consequence: Box::new(consequence),
             alternative: alternative.map(Box::new),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) struct WhileStatement {
+    pub(crate) condition: Expression,
+    pub(crate) body: Box<Statement>,
+}
+impl WhileStatement {
+    pub(crate) fn new(condition: Expression, body: Statement) -> Self {
+        Self {
+            condition,
+            body: Box::new(body),
         }
     }
 }
