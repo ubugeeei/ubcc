@@ -23,7 +23,7 @@ pub(crate) enum Token {
 pub(crate) struct Lexer {
     input: String,
     position: usize,
-    read_position: usize,
+    consume_position: usize,
     ch: char,
 }
 
@@ -32,10 +32,10 @@ impl Lexer {
         let mut lexer = Self {
             input,
             position: 0,
-            read_position: 0,
+            consume_position: 0,
             ch: '\0',
         };
-        lexer.read_char();
+        lexer.consume_char();
         lexer
     }
 
@@ -43,83 +43,83 @@ impl Lexer {
         self.skip_whitespace();
         match self.ch {
             '+' => {
-                self.read_char();
+                self.consume_char();
                 Token::Plus
             }
             '-' => {
-                self.read_char();
+                self.consume_char();
                 Token::Minus
             }
             '*' => {
-                self.read_char();
+                self.consume_char();
                 Token::Asterisk
             }
             '/' => {
-                self.read_char();
+                self.consume_char();
                 Token::Slash
             }
             '(' => {
-                self.read_char();
+                self.consume_char();
                 Token::LParen
             }
             ')' => {
-                self.read_char();
+                self.consume_char();
                 Token::RParen
             }
             '\0' => {
-                self.read_char();
+                self.consume_char();
                 Token::Eof
             }
             '!' => {
                 if self.peek_char() == '=' {
-                    self.read_char();
-                    self.read_char();
+                    self.consume_char();
+                    self.consume_char();
                     Token::NotEq
                 } else {
-                    self.read_char();
+                    self.consume_char();
                     Token::Not
                 }
             }
             '=' => {
                 if self.peek_char() == '=' {
-                    self.read_char();
-                    self.read_char();
+                    self.consume_char();
+                    self.consume_char();
                     Token::Eq
                 } else {
-                    self.read_char();
+                    self.consume_char();
                     Token::Assignment
                 }
             }
             '<' => {
                 if self.peek_char() == '=' {
-                    self.read_char();
-                    self.read_char();
+                    self.consume_char();
+                    self.consume_char();
                     Token::LtEq
                 } else {
-                    self.read_char();
+                    self.consume_char();
                     Token::Lt
                 }
             }
             '>' => {
                 if self.peek_char() == '=' {
-                    self.read_char();
-                    self.read_char();
+                    self.consume_char();
+                    self.consume_char();
                     Token::GtEq
                 } else {
-                    self.read_char();
+                    self.consume_char();
                     Token::Gt
                 }
             }
             ';' => {
-                self.read_char();
+                self.consume_char();
                 Token::SemiColon
             }
             _ => {
                 if self.ch.is_numeric() {
-                    let num = self.read_number();
+                    let num = self.consume_number();
                     Token::Integer(num)
                 } else if self.ch >= 'a' && self.ch <= 'z' {
-                    Token::Identifier(self.read_word())
+                    Token::Identifier(self.consume_word())
                 } else {
                     self.report_error("invalid token");
                     panic!();
@@ -130,41 +130,41 @@ impl Lexer {
 
     fn skip_whitespace(&mut self) {
         while self.ch.is_whitespace() {
-            self.read_char();
+            self.consume_char();
         }
     }
 
-    fn read_number(&mut self) -> i32 {
+    fn consume_number(&mut self) -> i32 {
         let position = self.position;
         while self.ch.is_numeric() {
-            self.read_char();
+            self.consume_char();
         }
         self.input[position..self.position].parse().unwrap()
     }
 
-    fn read_char(&mut self) {
-        if self.read_position >= self.input.len() {
+    fn consume_char(&mut self) {
+        if self.consume_position >= self.input.len() {
             self.ch = '\0';
         } else {
-            self.ch = self.input.chars().nth(self.read_position).unwrap();
+            self.ch = self.input.chars().nth(self.consume_position).unwrap();
         }
-        self.position = self.read_position;
-        self.read_position += 1;
+        self.position = self.consume_position;
+        self.consume_position += 1;
     }
 
-    fn read_word(&mut self) -> String {
+    fn consume_word(&mut self) -> String {
         let position = self.position;
         while self.ch.is_alphabetic() {
-            self.read_char();
+            self.consume_char();
         }
         self.input[position..self.position].to_string()
     }
 
     fn peek_char(&self) -> char {
-        if self.read_position >= self.input.len() {
+        if self.consume_position >= self.input.len() {
             '\0'
         } else {
-            self.input.chars().nth(self.read_position).unwrap()
+            self.input.chars().nth(self.consume_position).unwrap()
         }
     }
 
