@@ -1,7 +1,7 @@
 use crate::{
     ast::{
-        BinaryExpression, BinaryOperator, Expression, Program, Statement, UnaryExpression,
-        UnaryOperator,
+        BinaryExpression, BinaryOperator, Expression, IfStatement, Program, Statement,
+        UnaryExpression, UnaryOperator,
     },
     lex::{Lexer, Token},
 };
@@ -59,9 +59,39 @@ impl Parser {
     fn parse_statement(&mut self) -> Result<Statement, String> {
         // TODO: other statements
         match self.current_token {
+            Token::If => self.parse_if_statement(),
             Token::Return => self.parse_return_statement(),
             _ => self.parse_expression_statement(),
         }
+    }
+
+    fn parse_if_statement(&mut self) -> Result<Statement, String> {
+        self.next_token(); // skip 'if'
+
+        if self.current_token == Token::LParen {
+            self.next_token();
+        } else {
+            return Err(format!(
+                "expected token '(' but got {:?}",
+                self.current_token
+            ));
+        }
+
+        let condition = self.parse_expression(Precedence::Lowest)?;
+
+        if self.peeked_token == Token::RParen {
+            self.next_token(); // skip current
+            self.next_token(); // skip ')'
+        } else {
+            return Err(format!(
+                "expected token ')' but got {:?}",
+                self.peeked_token
+            ));
+        }
+
+        let consequence = self.parse_statement()?;
+
+        Ok(Statement::If(IfStatement::new(condition, consequence)))
     }
 
     fn parse_return_statement(&mut self) -> Result<Statement, String> {
@@ -73,7 +103,7 @@ impl Parser {
         } else {
             return Err(format!(
                 "expected token ';' but got {:?}",
-                self.current_token
+                self.peeked_token
             ));
         }
 
@@ -88,7 +118,7 @@ impl Parser {
         } else {
             return Err(format!(
                 "expected token ';' but got {:?}",
-                self.current_token
+                self.peeked_token
             ));
         }
 
@@ -530,6 +560,30 @@ mod test {
                 ))),
             ),
         ];
+
+        for (input, expected) in cases {
+            let lexer = Lexer::new(input);
+            let mut parser = Parser::new(lexer);
+            assert_eq!(parser.parse_statement().unwrap(), expected);
+        }
+    }
+
+    #[test]
+    fn test_parse_if_statement() {
+        let cases = vec![(
+            String::from("if (a == 0) return 0; "),
+            Statement::If(IfStatement::new(
+                Expression::Binary(BinaryExpression::new(
+                    Expression::LocalVariable {
+                        name: String::from("a"),
+                        offset: 8,
+                    },
+                    BinaryOperator::Eq,
+                    Expression::Integer(0),
+                )),
+                Statement::Return(Expression::Integer(0)),
+            )),
+        )];
 
         for (input, expected) in cases {
             let lexer = Lexer::new(input);

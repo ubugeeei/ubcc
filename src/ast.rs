@@ -21,6 +21,14 @@ pub(crate) struct IfStatement {
     pub(crate) consequence: Box<Statement>,
     // pub(crate) alternative: Option<Box<Statement>>,
 }
+impl IfStatement {
+    pub(crate) fn new(condition: Expression, consequence: Statement) -> Self {
+        Self {
+            condition,
+            consequence: Box::new(consequence),
+        }
+    }
+}
 
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) enum Expression {
