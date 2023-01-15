@@ -15,7 +15,7 @@ pub(crate) enum Statement {
 
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) enum Expression {
-    LocalVariable(String),
+    LocalVariable { literal: String, offset: i32 },
     Integer(i32),
     Binary(BinaryExpression),
     Unary(UnaryExpression),

@@ -70,7 +70,10 @@ impl Parser {
             Token::Integer(n) => Expression::Integer(n),
             Token::LParen => self.parse_grouped_expression()?,
             Token::Minus => self.parse_unary_expression()?,
-            Token::Identifier(s) => Expression::LocalVariable(s),
+            Token::Identifier(s) => Expression::LocalVariable {
+                literal: s.clone(),
+                offset: self.get_local_var_offset(&s),
+            },
             _ => return Err(format!("Invalid token: {:?}", self.current_token)),
         };
 
@@ -166,6 +169,10 @@ impl Parser {
             Token::Slash | Token::Asterisk => Precedence::Product,
             _ => Precedence::Lowest,
         }
+    }
+
+    fn get_local_var_offset(&self, name: &str) -> i32 {
+        (name.chars().nth(0).unwrap() as u8 - b'a' + 1) as i32 * 8
     }
 
     fn next_token(&mut self) {
@@ -403,12 +410,18 @@ mod test {
         let cases = vec![
             (
                 String::from("a"),
-                Expression::LocalVariable(String::from("a")),
+                Expression::LocalVariable {
+                    literal: String::from("a"),
+                    offset: 8,
+                },
             ),
             (
                 String::from("a + 2"),
                 Expression::Binary(BinaryExpression::new(
-                    Expression::LocalVariable(String::from("a")),
+                    Expression::LocalVariable {
+                        literal: String::from("a"),
+                        offset: 8,
+                    },
                     BinaryOperator::Plus,
                     Expression::Integer(2),
                 )),
@@ -416,9 +429,15 @@ mod test {
             (
                 String::from("a = b"),
                 Expression::Binary(BinaryExpression::new(
-                    Expression::LocalVariable(String::from("a")),
+                    Expression::LocalVariable {
+                        literal: String::from("a"),
+                        offset: 8,
+                    },
                     BinaryOperator::Assignment,
-                    Expression::LocalVariable(String::from("b")),
+                    Expression::LocalVariable {
+                        literal: String::from("b"),
+                        offset: 16,
+                    },
                 )),
             ),
         ];
@@ -455,6 +474,24 @@ mod test {
             let lexer = Lexer::new(input);
             let mut parser = Parser::new(lexer);
             assert_eq!(parser.parse().unwrap(), expected);
+        }
+    }
+
+    #[test]
+    fn test_get_local_var_offset() {
+        let cases = vec![
+            (String::from("a"), 8),
+            (String::from("b"), 16),
+            (String::from("c"), 24),
+            (String::from("d"), 32),
+            (String::from("y"), 200),
+            (String::from("z"), 208),
+        ];
+
+        for (input, expected) in cases {
+            let lexer = Lexer::new(String::new());
+            let parser = Parser::new(lexer);
+            assert_eq!(parser.get_local_var_offset(&input), expected);
         }
     }
 }

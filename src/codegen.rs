@@ -72,9 +72,10 @@ impl CodeGenerator {
                         println!("  cmp rax, rdi");
                         println!("  setne al");
                         println!("  movzb rax, al");
-                    } // _ => {
-                      //     panic!("Invalid binary operator: {:?}", bin.op);
-                      // }
+                    }
+                    _ => {
+                        panic!("Invalid binary operator: {:?}", bin.op);
+                    }
                 }
                 println!("  push rax");
             }
