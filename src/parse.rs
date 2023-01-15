@@ -57,18 +57,23 @@ impl Parser {
     }
 
     fn parse_statement(&mut self) -> Result<Statement, String> {
+        // TODO: other statements
         match self.current_token {
-            // TODO: other statements
-            _ => {
-                let expr = self.parse_expression_statement();
-                self.next_token(); // skip ';'
-                expr
-            }
+            Token::Return => self.parse_return_statement(),
+            _ => self.parse_expression_statement(),
         }
+    }
+
+    fn parse_return_statement(&mut self) -> Result<Statement, String> {
+        self.next_token(); // skip 'return'
+        let expr = self.parse_expression(Precedence::Lowest)?;
+        self.next_token(); // skip ';'
+        Ok(Statement::Return(expr))
     }
 
     fn parse_expression_statement(&mut self) -> Result<Statement, String> {
         let expr = self.parse_expression(Precedence::Lowest)?;
+        self.next_token(); // skip ';'
         Ok(Statement::Expression(expr))
     }
 
@@ -488,6 +493,30 @@ mod test {
                 parser.parse_expression(Precedence::Lowest).unwrap(),
                 expected
             );
+        }
+    }
+
+    #[test]
+    fn test_parse_return_statement() {
+        let cases = vec![
+            (
+                String::from("return 5;"),
+                Statement::Return(Expression::Integer(5)),
+            ),
+            (
+                String::from("return 5 + 5;"),
+                Statement::Return(Expression::Binary(BinaryExpression::new(
+                    Expression::Integer(5),
+                    BinaryOperator::Plus,
+                    Expression::Integer(5),
+                ))),
+            ),
+        ];
+
+        for (input, expected) in cases {
+            let lexer = Lexer::new(input);
+            let mut parser = Parser::new(lexer);
+            assert_eq!(parser.parse_statement().unwrap(), expected);
         }
     }
 

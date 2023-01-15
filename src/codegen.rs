@@ -25,9 +25,8 @@ impl CodeGenerator {
 
     fn gen_stmt(&self, node: &Statement) {
         match node {
-            Statement::Expression(expr) => {
-                self.gen_expr(expr);
-            }
+            Statement::Expression(expr) => self.gen_expr(expr),
+            _ => todo!(),
         }
     }
 
