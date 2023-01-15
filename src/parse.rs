@@ -67,13 +67,31 @@ impl Parser {
     fn parse_return_statement(&mut self) -> Result<Statement, String> {
         self.next_token(); // skip 'return'
         let expr = self.parse_expression(Precedence::Lowest)?;
-        self.next_token(); // skip ';'
+
+        if self.peeked_token == Token::SemiColon {
+            self.next_token();
+        } else {
+            return Err(format!(
+                "expected token ';' but got {:?}",
+                self.current_token
+            ));
+        }
+
         Ok(Statement::Return(expr))
     }
 
     fn parse_expression_statement(&mut self) -> Result<Statement, String> {
         let expr = self.parse_expression(Precedence::Lowest)?;
-        self.next_token(); // skip ';'
+
+        if self.peeked_token == Token::SemiColon {
+            self.next_token();
+        } else {
+            return Err(format!(
+                "expected token ';' but got {:?}",
+                self.current_token
+            ));
+        }
+
         Ok(Statement::Expression(expr))
     }
 
