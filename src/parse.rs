@@ -468,6 +468,20 @@ mod test {
                     },
                 )),
             ),
+            (
+                String::from("foo = bar"),
+                Expression::Binary(BinaryExpression::new(
+                    Expression::LocalVariable {
+                        literal: String::from("foo"),
+                        offset: 8,
+                    },
+                    BinaryOperator::Assignment,
+                    Expression::LocalVariable {
+                        literal: String::from("bar"),
+                        offset: 16,
+                    },
+                )),
+            ),
         ];
 
         for (input, expected) in cases {
