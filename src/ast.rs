@@ -19,13 +19,18 @@ pub(crate) enum Statement {
 pub(crate) struct IfStatement {
     pub(crate) condition: Expression,
     pub(crate) consequence: Box<Statement>,
-    // pub(crate) alternative: Option<Box<Statement>>,
+    pub(crate) alternative: Option<Box<Statement>>,
 }
 impl IfStatement {
-    pub(crate) fn new(condition: Expression, consequence: Statement) -> Self {
+    pub(crate) fn new(
+        condition: Expression,
+        consequence: Statement,
+        alternative: Option<Statement>,
+    ) -> Self {
         Self {
             condition,
             consequence: Box::new(consequence),
+            alternative: alternative.map(Box::new),
         }
     }
 }
