@@ -7,10 +7,10 @@ use crate::{
 };
 
 // entry
-pub(crate) fn parse(input: String) -> Program {
+pub(crate) fn parse(input: String) -> Result<Program, String> {
     let lexer = Lexer::new(input);
     let mut parser = Parser::new(lexer);
-    parser.parse().unwrap()
+    parser.parse()
 }
 
 struct LVar {

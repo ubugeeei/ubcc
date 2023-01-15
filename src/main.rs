@@ -9,7 +9,14 @@ fn main() {
         panic!("Invalid number of arguments");
     }
     let input = argv[1].clone();
-    let ast = parse::parse(input);
+
+    let ast = match parse::parse(input) {
+        Ok(ast) => ast,
+        Err(e) => {
+            eprintln!("{}", e);
+            std::process::exit(1);
+        }
+    };
 
     println!(".intel_syntax noprefix");
     println!(".global main");
