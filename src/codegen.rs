@@ -41,12 +41,12 @@ impl CodeGenerator {
                 self.gen_expr(&if_stmt.condition);
                 println!("  pop rax");
                 println!("  cmp rax, 0");
-                println!("  je {}", label_else);
+                println!("  je {label_else}");
                 self.gen_stmt(&*if_stmt.consequence);
-                println!("  jmp {}", label_end);
-                println!("{}:", label_else);
+                println!("  jmp {label_end}");
+                println!("{label_else}:");
                 self.gen_stmt(&*alternative);
-                println!("{}:", label_end);
+                println!("{label_end}:");
             }
             None => {
                 let label = format!("L_end_{}", rand::random::<u32>());
@@ -55,7 +55,7 @@ impl CodeGenerator {
                 println!("  cmp rax, 0");
                 println!("  je {}", label);
                 self.gen_stmt(&*if_stmt.consequence);
-                println!("{}:", label);
+                println!("{label}:");
             }
         }
     }
@@ -157,7 +157,7 @@ impl CodeGenerator {
         match node {
             Expression::LocalVariable { offset, .. } => {
                 println!("  mov rax, rbp");
-                println!("  sub rax, {}", offset);
+                println!("  sub rax, {offset}");
                 println!("  push rax");
             }
             _ => {
