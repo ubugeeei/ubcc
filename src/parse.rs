@@ -91,7 +91,19 @@ impl Parser {
 
         let consequence = self.parse_statement()?;
 
-        Ok(Statement::If(IfStatement::new(condition, consequence)))
+        let alternative = if self.peeked_token == Token::Else {
+            self.next_token(); // skip current
+            self.next_token(); // skip 'else'
+            Some(self.parse_statement()?)
+        } else {
+            None
+        };
+
+        Ok(Statement::If(IfStatement::new(
+            condition,
+            consequence,
+            alternative,
+        )))
     }
 
     fn parse_return_statement(&mut self) -> Result<Statement, String> {
@@ -570,20 +582,38 @@ mod test {
 
     #[test]
     fn test_parse_if_statement() {
-        let cases = vec![(
-            String::from("if (a == 0) return 0; "),
-            Statement::If(IfStatement::new(
-                Expression::Binary(BinaryExpression::new(
-                    Expression::LocalVariable {
-                        name: String::from("a"),
-                        offset: 8,
-                    },
-                    BinaryOperator::Eq,
-                    Expression::Integer(0),
+        let cases = vec![
+            (
+                String::from("if (a == 0) return 0; "),
+                Statement::If(IfStatement::new(
+                    Expression::Binary(BinaryExpression::new(
+                        Expression::LocalVariable {
+                            name: String::from("a"),
+                            offset: 8,
+                        },
+                        BinaryOperator::Eq,
+                        Expression::Integer(0),
+                    )),
+                    Statement::Return(Expression::Integer(0)),
+                    None,
                 )),
-                Statement::Return(Expression::Integer(0)),
-            )),
-        )];
+            ),
+            (
+                String::from("if (a == 0) return 0; else return 1;"),
+                Statement::If(IfStatement::new(
+                    Expression::Binary(BinaryExpression::new(
+                        Expression::LocalVariable {
+                            name: String::from("a"),
+                            offset: 8,
+                        },
+                        BinaryOperator::Eq,
+                        Expression::Integer(0),
+                    )),
+                    Statement::Return(Expression::Integer(0)),
+                    Some(Statement::Return(Expression::Integer(1))),
+                )),
+            ),
+        ];
 
         for (input, expected) in cases {
             let lexer = Lexer::new(input);
