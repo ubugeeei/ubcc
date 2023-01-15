@@ -39,8 +39,8 @@ impl CodeGenerator {
     fn gen_if(&self, if_stmt: &IfStatement) {
         match if_stmt.alternative.as_ref() {
             Some(alternative) => {
-                let label_else = format!("L_else_{}", rand::random::<u32>());
-                let label_end = format!("L_end_{}", rand::random::<u32>());
+                let label_else = format!(".Lelse{}", rand::random::<u32>());
+                let label_end = format!(".Lend{}", rand::random::<u32>());
                 self.gen_expr(&if_stmt.condition);
                 println!("  pop rax");
                 println!("  cmp rax, 0");
@@ -52,7 +52,7 @@ impl CodeGenerator {
                 println!("{label_end}:");
             }
             None => {
-                let label = format!("L_end_{}", rand::random::<u32>());
+                let label = format!(".Lend{}", rand::random::<u32>());
                 self.gen_expr(&if_stmt.condition);
                 println!("  pop rax");
                 println!("  cmp rax, 0");
@@ -64,8 +64,8 @@ impl CodeGenerator {
     }
 
     fn gen_while(&self, while_stmt: &WhileStatement) {
-        let label_begin = format!("L_begin_{}", rand::random::<u32>());
-        let label_end = format!("L_end_{}", rand::random::<u32>());
+        let label_begin = format!(".Lbegin{}", rand::random::<u32>());
+        let label_end = format!(".Lend{}", rand::random::<u32>());
         println!("{label_begin}:");
         self.gen_expr(&while_stmt.condition);
         println!("  pop rax");
@@ -77,8 +77,8 @@ impl CodeGenerator {
     }
 
     fn gen_for(&self, for_stmt: &ForStatement) {
-        let label_begin = format!("L_begin_{}", rand::random::<u32>());
-        let label_end = format!("L_end_{}", rand::random::<u32>());
+        let label_begin = format!(".Lbegin{}", rand::random::<u32>());
+        let label_end = format!(".Lend{}", rand::random::<u32>());
 
         // init
         match for_stmt.init.as_ref() {
