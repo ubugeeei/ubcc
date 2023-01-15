@@ -1,10 +1,14 @@
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) struct Program {
+    pub(crate) locals: Vec<LVar>,
     pub(crate) statements: Vec<Statement>,
 }
 impl Program {
     pub(crate) fn new(statements: Vec<Statement>) -> Self {
-        Self { statements }
+        Self {
+            locals: Vec::new(),
+            statements,
+        }
     }
 }
 
@@ -19,6 +23,12 @@ pub(crate) enum Expression {
     Integer(i32),
     Binary(BinaryExpression),
     Unary(UnaryExpression),
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) struct LVar {
+    pub(crate) name: String,
+    pub(crate) offset: i32,
 }
 
 #[derive(Debug, PartialEq, Eq)]
