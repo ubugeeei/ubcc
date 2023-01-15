@@ -1,7 +1,7 @@
 use crate::{
     ast::{
-        BinaryExpression, BinaryOperator, Expression, IfStatement, Program, Statement,
-        UnaryExpression, UnaryOperator, WhileStatement,
+        BinaryExpression, BinaryOperator, Expression, ForStatement, IfStatement, Program,
+        Statement, UnaryExpression, UnaryOperator, WhileStatement,
     },
     lex::{Lexer, Token},
 };
@@ -61,6 +61,7 @@ impl Parser {
         match self.current_token {
             Token::If => self.parse_if_statement(),
             Token::While => self.parse_while_statement(),
+            Token::For => self.parse_for_statement(),
             Token::Return => self.parse_return_statement(),
             _ => self.parse_expression_statement(),
         }
@@ -135,6 +136,63 @@ impl Parser {
         Ok(Statement::While(WhileStatement::new(condition, body)))
     }
 
+    fn parse_for_statement(&mut self) -> Result<Statement, String> {
+        self.next_token(); // skip 'for'
+
+        if self.current_token == Token::LParen {
+            self.next_token();
+        } else {
+            return Err(format!(
+                "expected token '(' but got {:?}",
+                self.current_token
+            ));
+        }
+
+        let init = if self.current_token == Token::SemiColon {
+            None
+        } else {
+            Some(self.parse_expression_statement()?)
+        };
+        self.next_token(); // skip ';'
+
+        let condition = if self.current_token == Token::SemiColon {
+            None
+        } else {
+            let expr = self.parse_expression(Precedence::Lowest)?;
+            self.next_token();
+            if self.current_token == Token::SemiColon {
+                self.next_token();
+                Some(expr)
+            } else {
+                return Err(format!(
+                    "expected token ';' but got {:?}",
+                    self.current_token
+                ));
+            }
+        };
+
+        let step = if self.current_token == Token::RParen {
+            None
+        } else {
+            let expr = self.parse_statement()?;
+            if self.current_token == Token::RParen {
+                self.next_token();
+                Some(expr)
+            } else {
+                return Err(format!(
+                    "expected token ')' but got {:?}",
+                    self.current_token
+                ));
+            }
+        };
+
+        let body = self.parse_statement()?;
+
+        Ok(Statement::For(ForStatement::new(
+            init, condition, step, body,
+        )))
+    }
+
     fn parse_return_statement(&mut self) -> Result<Statement, String> {
         self.next_token(); // skip 'return'
         let expr = self.parse_expression(Precedence::Lowest)?;
@@ -154,11 +212,11 @@ impl Parser {
     fn parse_expression_statement(&mut self) -> Result<Statement, String> {
         let expr = self.parse_expression(Precedence::Lowest)?;
 
-        if self.peeked_token == Token::SemiColon {
+        if self.peeked_token == Token::SemiColon || self.peeked_token == Token::RParen {
             self.next_token();
         } else {
             return Err(format!(
-                "expected token ';' but got {:?}",
+                "expected token ';' or ')' but got {:?}",
                 self.peeked_token
             ));
         }
@@ -664,6 +722,57 @@ mod test {
                     BinaryOperator::Eq,
                     Expression::Integer(0),
                 )),
+                Statement::Return(Expression::Integer(0)),
+            )),
+        )];
+
+        for (input, expected) in cases {
+            let lexer = Lexer::new(input);
+            let mut parser = Parser::new(lexer);
+            assert_eq!(parser.parse_statement().unwrap(), expected);
+        }
+    }
+
+    #[test]
+    fn test_parse_for_statement() {
+        let cases = vec![(
+            String::from("for (i = 0; i < 10; i = i + 1) return 0;"),
+            Statement::For(ForStatement::new(
+                Some(Statement::Expression(Expression::Binary(
+                    BinaryExpression::new(
+                        Expression::LocalVariable {
+                            name: String::from("i"),
+                            offset: 8,
+                        },
+                        BinaryOperator::Assignment,
+                        Expression::Integer(0),
+                    ),
+                ))),
+                Some(Expression::Binary(BinaryExpression::new(
+                    Expression::LocalVariable {
+                        name: String::from("i"),
+                        offset: 8,
+                    },
+                    BinaryOperator::Lt,
+                    Expression::Integer(10),
+                ))),
+                Some(Statement::Expression(Expression::Binary(
+                    BinaryExpression::new(
+                        Expression::LocalVariable {
+                            name: String::from("i"),
+                            offset: 8,
+                        },
+                        BinaryOperator::Assignment,
+                        Expression::Binary(BinaryExpression::new(
+                            Expression::LocalVariable {
+                                name: String::from("i"),
+                                offset: 8,
+                            },
+                            BinaryOperator::Plus,
+                            Expression::Integer(1),
+                        )),
+                    ),
+                ))),
                 Statement::Return(Expression::Integer(0)),
             )),
         )];
