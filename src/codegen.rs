@@ -20,8 +20,9 @@ impl CodeGenerator {
     fn gen(&self) {
         for stmt in self.ast.statements.iter() {
             self.gen_stmt(stmt);
-            println!("  # stack overflow prevention.");
+            println!("# stack overflow prevention.");
             println!("  pop rax");
+            println!("");
         }
     }
 
@@ -37,6 +38,7 @@ impl CodeGenerator {
     }
 
     fn gen_if(&self, if_stmt: &IfStatement) {
+        println!("# -- start if");
         match if_stmt.alternative.as_ref() {
             Some(alternative) => {
                 let label_else = format!(".Lelse{}", rand::random::<u32>());
@@ -61,9 +63,12 @@ impl CodeGenerator {
                 println!("{label}:");
             }
         }
+        println!("# -- end if");
+        println!("");
     }
 
     fn gen_while(&self, while_stmt: &WhileStatement) {
+        println!("# -- start while");
         let label_begin = format!(".Lbegin{}", rand::random::<u32>());
         let label_end = format!(".Lend{}", rand::random::<u32>());
         println!("{label_begin}:");
@@ -74,9 +79,12 @@ impl CodeGenerator {
         self.gen_stmt(&*while_stmt.body);
         println!("  jmp {label_begin}");
         println!("{label_end}:");
+        println!("# -- end while");
+        println!("");
     }
 
     fn gen_for(&self, for_stmt: &ForStatement) {
+        println!("# -- start for");
         let label_begin = format!(".Lbegin{}", rand::random::<u32>());
         let label_end = format!(".Lend{}", rand::random::<u32>());
 
@@ -109,15 +117,20 @@ impl CodeGenerator {
 
         println!("  jmp {label_begin}");
         println!("{label_end}:");
+        println!("# -- end for");
+        println!("");
     }
 
     fn gen_return(&self, node: &Expression) {
+        println!("# -- start return");
         self.gen_expr(node);
         println!("  # epilogue");
         println!("  pop rax");
         println!("  mov rsp, rbp");
         println!("  pop rbp");
         println!("  ret");
+        println!("# -- end return");
+        println!("");
     }
 
     fn gen_expr(&self, node: &Expression) {
@@ -171,13 +184,15 @@ impl CodeGenerator {
                         println!("  movzb rax, al");
                     }
                     BinaryOperator::Assignment => {
+                        println!("  # --start assignment");
                         self.gen_lval(&*bin.lhs);
                         self.gen_expr(&*bin.rhs);
-
                         println!("  pop rdi");
                         println!("  pop rax");
                         println!("  mov [rax], rdi");
                         println!("  push rdi");
+                        println!("  # --end assignment");
+                        println!("");
                     } //
                       // _ => {
                       //     panic!("Invalid binary operator: {:?}", bin.op);
@@ -194,9 +209,11 @@ impl CodeGenerator {
     fn gen_lval(&self, node: &Expression) {
         match node {
             Expression::LocalVariable { offset, .. } => {
+                println!("  # load local variable");
                 println!("  mov rax, rbp");
                 println!("  sub rax, {offset}");
                 println!("  push rax");
+                println!("");
             }
             _ => {
                 panic!(
