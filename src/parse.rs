@@ -57,7 +57,6 @@ impl Parser {
     }
 
     fn parse_statement(&mut self) -> Result<Statement, String> {
-        // TODO: other statements
         match self.current_token {
             Token::If => self.parse_if_statement(),
             Token::While => self.parse_while_statement(),
@@ -241,7 +240,10 @@ impl Parser {
             Token::LParen => self.parse_grouped_expression()?,
             Token::Minus => self.parse_unary_expression()?,
             Token::Identifier(name) => match self.peeked_token {
-                Token::LParen => return self.parse_call_expression(name),
+                Token::LParen => {
+                    self.next_token(); // skip identifier
+                    self.parse_call_expression(name)?
+                }
                 _ => self.parse_identifier_expression(name)?,
             },
             _ => return Err(format!("Invalid token: {:?}", self.current_token)),
@@ -338,10 +340,17 @@ impl Parser {
     }
 
     fn parse_call_expression(&mut self, callee_name: String) -> Result<Expression, String> {
-        self.next_token();
-        let arguments = vec![];
-        // TODO: parse arguments
-        self.next_token();
+        let mut arguments = vec![];
+
+        while self.peeked_token != Token::RParen {
+            self.next_token();
+            let expr = self.parse_expression(Precedence::Lowest)?;
+            arguments.push(expr);
+            if self.peeked_token == Token::Comma {
+                self.next_token();
+            }
+        }
+
         Ok(Expression::Call(CallExpression::new(
             callee_name,
             arguments,
@@ -851,20 +860,16 @@ mod test {
     fn parse_call_expression() {
         let cases = vec![
             (
-                String::from("foo()"),
+                String::from("foo();"),
                 Expression::Call(CallExpression::new(String::from("foo"), vec![])),
             ),
-            // TODO:
-            // (
-            //     String::from("foo(1, 2)"),
-            //     Expression::Call(CallExpression::new(
-            //         Expression::LocalVariable {
-            //             name: String::from("foo"),
-            //             offset: 8,
-            //         },
-            //         vec![Expression::Integer(1), Expression::Integer(2)],
-            //     )),
-            // ),
+            (
+                String::from("bar(1, 2);"),
+                Expression::Call(CallExpression::new(
+                    String::from("bar"),
+                    vec![Expression::Integer(1), Expression::Integer(2)],
+                )),
+            ),
         ];
 
         for (input, expected) in cases {
