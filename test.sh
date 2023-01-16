@@ -4,9 +4,9 @@ assert() {
   expected="$1"
   input="$2"
 
-  ${UBCC} "$input" >tmp.s
-  cc -o tmp tmp.s
-  ./tmp
+  ${UBCC} "$input" > target/tmp.s
+  cc -o target/tmp target/tmp.s
+  ./target/tmp
   actual="$?"
 
   if [ "$actual" = "$expected" ]; then
@@ -22,11 +22,11 @@ assert_with_link() {
   expected="$2"
   input="$3"
 
-  ${UBCC} "$input" >tmp.s
-  cc -c tmp.o tmp.s
-  cc -c "$1".o "$1".c
-  cc -o tmp tmp.o "$1".o
-  ./tmp
+  ${UBCC} "$input" > target/tmp.s
+  cc -c target/tmp.s -o target/tmp.o 
+  cc -c lib/"$1".c -o target/"$1".o
+  cc -o target/tmp target/tmp.o target/"$1".o
+  ./target/tmp
   actual="$?"
 
   if [ "$actual" = "$expected" ]; then
