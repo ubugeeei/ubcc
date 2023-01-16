@@ -6,6 +6,8 @@ pub(crate) enum Token {
     Asterisk,
     LParen,
     RParen,
+    LBrace,
+    RBrace,
     Gt,
     Lt,
     GtEq,
@@ -70,6 +72,14 @@ impl Lexer {
             ')' => {
                 self.consume_char();
                 Token::RParen
+            }
+            '{' => {
+                self.consume_char();
+                Token::LBrace
+            }
+            '}' => {
+                self.consume_char();
+                Token::RBrace
             }
             '\0' => {
                 self.consume_char();
@@ -206,7 +216,7 @@ mod test {
     fn test_next_token() {
         {
             let input = String::from(
-                "1 + - / * ( ) = ! == != < > <= >= ; a b foo bar return if else while for",
+                "1 + - / * ( ) { } = ! == != < > <= >= ; a b foo bar return if else while for",
             );
             let mut lexer = Lexer::new(input);
             assert_eq!(lexer.next(), Token::Integer(1));
@@ -216,6 +226,8 @@ mod test {
             assert_eq!(lexer.next(), Token::Asterisk);
             assert_eq!(lexer.next(), Token::LParen);
             assert_eq!(lexer.next(), Token::RParen);
+            assert_eq!(lexer.next(), Token::LBrace);
+            assert_eq!(lexer.next(), Token::RBrace);
             assert_eq!(lexer.next(), Token::Assignment);
             assert_eq!(lexer.next(), Token::Not);
             assert_eq!(lexer.next(), Token::Eq);
