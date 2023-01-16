@@ -14,6 +14,7 @@ pub(crate) enum Statement {
     If(IfStatement),
     While(WhileStatement),
     For(ForStatement),
+    Block(Vec<Statement>),
     Return(Expression),
 }
 
