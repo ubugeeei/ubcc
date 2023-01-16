@@ -24,10 +24,8 @@ fn main() {
 
     println!("main:");
     println!("  # prologue");
-    println!("  # allocate 26 * 8 bytes for local variables");
     println!("  push rbp");
     println!("  mov rbp, rsp");
-    println!("  sub rsp, 208");
     println!("");
 
     codegen::gen(ast);
