@@ -151,6 +151,11 @@ impl CodeGenerator {
                 println!("  mov rax, [rax]");
                 println!("  push rax");
             }
+            Expression::Call(call) => {
+                // TODO: support arguments
+                println!("  call {}", call.callee_name);
+                println!("  push rax");
+            }
             Expression::Binary(bin) => {
                 self.gen_expr(&*bin.lhs);
                 self.gen_expr(&*bin.rhs);

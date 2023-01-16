@@ -17,6 +17,26 @@ assert() {
   fi
 }
 
+assert_with_link() {
+  file_name="$1"
+  expected="$2"
+  input="$3"
+
+  ${UBCC} "$input" >tmp.s
+  cc -c tmp.o tmp.s
+  cc -c "$1".o "$1".c
+  cc -o tmp tmp.o "$1".o
+  ./tmp
+  actual="$?"
+
+  if [ "$actual" = "$expected" ]; then
+    echo "$input => $actual"
+  else
+    echo "$input => $expected expected, but got $actual"
+    exit 1
+  fi
+}
+
 assert 0 "return 0;"
 assert 42 "return 42;"
 
@@ -88,6 +108,8 @@ assert 10 "\
   }\
   return i;\
 "
+
+assert_with_link "foo" 0 "foo(); return 0;"
 
 # assert 55 '
 #   sum(m, n) {
