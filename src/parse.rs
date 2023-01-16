@@ -63,6 +63,7 @@ impl Parser {
             Token::While => self.parse_while_statement(),
             Token::For => self.parse_for_statement(),
             Token::Return => self.parse_return_statement(),
+            Token::LBrace => self.parse_block_statement(),
             _ => self.parse_expression_statement(),
         }
     }
@@ -191,6 +192,16 @@ impl Parser {
         Ok(Statement::For(ForStatement::new(
             init, condition, step, body,
         )))
+    }
+
+    fn parse_block_statement(&mut self) -> Result<Statement, String> {
+        self.next_token(); // skip '{'
+        let mut statements = Vec::new();
+        while self.current_token != Token::RBrace {
+            statements.push(self.parse_statement()?);
+            self.next_token();
+        }
+        Ok(Statement::Block(statements))
     }
 
     fn parse_return_statement(&mut self) -> Result<Statement, String> {
@@ -776,6 +787,44 @@ mod test {
                 Statement::Return(Expression::Integer(0)),
             )),
         )];
+
+        for (input, expected) in cases {
+            let lexer = Lexer::new(input);
+            let mut parser = Parser::new(lexer);
+            assert_eq!(parser.parse_statement().unwrap(), expected);
+        }
+    }
+
+    #[test]
+    fn test_parse_block_statement() {
+        let cases = vec![
+            (String::from("{}"), Statement::Block(vec![])),
+            (
+                String::from("{ return 0; }"),
+                Statement::Block(vec![Statement::Return(Expression::Integer(0))]),
+            ),
+            (
+                String::from("{ i = i + 1; return 0; }"),
+                Statement::Block(vec![
+                    Statement::Expression(Expression::Binary(BinaryExpression::new(
+                        Expression::LocalVariable {
+                            name: String::from("i"),
+                            offset: 8,
+                        },
+                        BinaryOperator::Assignment,
+                        Expression::Binary(BinaryExpression::new(
+                            Expression::LocalVariable {
+                                name: String::from("i"),
+                                offset: 8,
+                            },
+                            BinaryOperator::Plus,
+                            Expression::Integer(1),
+                        )),
+                    ))),
+                    Statement::Return(Expression::Integer(0)),
+                ]),
+            ),
+        ];
 
         for (input, expected) in cases {
             let lexer = Lexer::new(input);
