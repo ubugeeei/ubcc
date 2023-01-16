@@ -1,7 +1,7 @@
 use crate::{
     ast::{
-        BinaryExpression, BinaryOperator, Expression, ForStatement, IfStatement, Program,
-        Statement, UnaryExpression, UnaryOperator, WhileStatement,
+        BinaryExpression, BinaryOperator, CallExpression, Expression, ForStatement, IfStatement,
+        Program, Statement, UnaryExpression, UnaryOperator, WhileStatement,
     },
     lex::{Lexer, Token},
 };
@@ -240,7 +240,10 @@ impl Parser {
             Token::Integer(n) => Expression::Integer(n),
             Token::LParen => self.parse_grouped_expression()?,
             Token::Minus => self.parse_unary_expression()?,
-            Token::Identifier(s) => self.parse_identifier_expression(s)?,
+            Token::Identifier(name) => match self.peeked_token {
+                Token::LParen => return self.parse_call_expression(name),
+                _ => self.parse_identifier_expression(name)?,
+            },
             _ => return Err(format!("Invalid token: {:?}", self.current_token)),
         };
 
@@ -332,6 +335,17 @@ impl Parser {
             }),
             None => self.new_local_var(name),
         }
+    }
+
+    fn parse_call_expression(&mut self, callee_name: String) -> Result<Expression, String> {
+        self.next_token();
+        let arguments = vec![];
+        // TODO: parse arguments
+        self.next_token();
+        Ok(Expression::Call(CallExpression::new(
+            callee_name,
+            arguments,
+        )))
     }
 
     fn new_local_var(&mut self, name: String) -> Result<Expression, String> {
@@ -830,6 +844,36 @@ mod test {
             let lexer = Lexer::new(input);
             let mut parser = Parser::new(lexer);
             assert_eq!(parser.parse_statement().unwrap(), expected);
+        }
+    }
+
+    #[test]
+    fn parse_call_expression() {
+        let cases = vec![
+            (
+                String::from("foo()"),
+                Expression::Call(CallExpression::new(String::from("foo"), vec![])),
+            ),
+            // TODO:
+            // (
+            //     String::from("foo(1, 2)"),
+            //     Expression::Call(CallExpression::new(
+            //         Expression::LocalVariable {
+            //             name: String::from("foo"),
+            //             offset: 8,
+            //         },
+            //         vec![Expression::Integer(1), Expression::Integer(2)],
+            //     )),
+            // ),
+        ];
+
+        for (input, expected) in cases {
+            let lexer = Lexer::new(input);
+            let mut parser = Parser::new(lexer);
+            assert_eq!(
+                parser.parse_expression(Precedence::Lowest).unwrap(),
+                expected
+            );
         }
     }
 
