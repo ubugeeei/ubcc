@@ -31,9 +31,16 @@ impl CodeGenerator {
             Statement::If(if_stmt) => self.gen_if(if_stmt),
             Statement::While(while_stmt) => self.gen_while(while_stmt),
             Statement::For(for_stmt) => self.gen_for(for_stmt),
+            Statement::Block(stmts) => self.gen_stmts(stmts),
             Statement::Expression(expr) => self.gen_expr(expr),
             Statement::Return(expr) => self.gen_return(expr),
             _ => todo!(),
+        }
+    }
+
+    fn gen_stmts(&self, stmts: &[Statement]) {
+        for stmt in stmts.iter() {
+            self.gen_stmt(stmt);
         }
     }
 
