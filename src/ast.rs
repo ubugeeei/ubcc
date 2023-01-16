@@ -81,6 +81,7 @@ pub(crate) enum Expression {
     Integer(i32),
     Binary(BinaryExpression),
     Unary(UnaryExpression),
+    Call(CallExpression),
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -133,4 +134,18 @@ pub enum UnaryOperator {
     // Bang,
     // Increment,
     // Decrement,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) struct CallExpression {
+    pub(crate) callee_name: String,
+    pub(crate) arguments: Vec<Expression>,
+}
+impl CallExpression {
+    pub(crate) fn new(callee_name: String, arguments: Vec<Expression>) -> Self {
+        Self {
+            callee_name,
+            arguments,
+        }
+    }
 }
