@@ -153,6 +153,9 @@ impl CodeGenerator {
             }
             Expression::Call(call) => {
                 let registers = ["rdi", "rsi", "rdx", "rcx", "r8d", "r9d"];
+                if call.arguments.len() > registers.len() {
+                    panic!("too many arguments");
+                }
                 for (i, arg) in call.arguments.iter().enumerate() {
                     self.gen_expr(arg);
                     println!("  pop {}", registers[i]);
