@@ -25,6 +25,7 @@ pub(crate) enum Token {
     For,
     SemiColon,
     Comma,
+    Int,
     Eof,
 }
 
@@ -182,6 +183,7 @@ impl Lexer {
             "else" => Token::Else,
             "while" => Token::While,
             "for" => Token::For,
+            "int" => Token::Int,
             _ => Token::Identifier(word),
         }
     }
@@ -221,7 +223,7 @@ mod test {
     fn test_next_token() {
         {
             let input = String::from(
-                "1 + - / * ( ) { } = ! == != < > <= >= ; , a b foo bar return if else while for",
+                "1 + - / * ( ) { } = ! == != < > <= >= ; , a b foo bar return if else while for int",
             );
             let mut lexer = Lexer::new(input);
             assert_eq!(lexer.next(), Token::Integer(1));
@@ -252,6 +254,7 @@ mod test {
             assert_eq!(lexer.next(), Token::Else);
             assert_eq!(lexer.next(), Token::While);
             assert_eq!(lexer.next(), Token::For);
+            assert_eq!(lexer.next(), Token::Int);
             assert_eq!(lexer.next(), Token::Eof);
         }
         {
