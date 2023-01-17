@@ -351,6 +351,8 @@ impl Parser {
             }
         }
 
+        self.next_token(); // skip ')'
+
         Ok(Expression::Call(CallExpression::new(
             callee_name,
             arguments,
@@ -884,21 +886,33 @@ mod test {
 
     #[test]
     fn test_parse() {
-        let cases = vec![(
-            String::from("5;1+2*3;"),
-            Program::new(vec![
-                Statement::Expression(Expression::Integer(5)),
-                Statement::Expression(Expression::Binary(BinaryExpression::new(
-                    Expression::Integer(1),
-                    BinaryOperator::Plus,
-                    Expression::Binary(BinaryExpression::new(
-                        Expression::Integer(2),
-                        BinaryOperator::Asterisk,
-                        Expression::Integer(3),
-                    )),
-                ))),
-            ]),
-        )];
+        let cases = vec![
+            (
+                String::from("5;1+2*3;"),
+                Program::new(vec![
+                    Statement::Expression(Expression::Integer(5)),
+                    Statement::Expression(Expression::Binary(BinaryExpression::new(
+                        Expression::Integer(1),
+                        BinaryOperator::Plus,
+                        Expression::Binary(BinaryExpression::new(
+                            Expression::Integer(2),
+                            BinaryOperator::Asterisk,
+                            Expression::Integer(3),
+                        )),
+                    ))),
+                ]),
+            ),
+            (
+                String::from("bar(1, 2); return 0;"),
+                Program::new(vec![
+                    Statement::Expression(Expression::Call(CallExpression::new(
+                        String::from("bar"),
+                        vec![Expression::Integer(1), Expression::Integer(2)],
+                    ))),
+                    Statement::Return(Expression::Integer(0)),
+                ]),
+            ),
+        ];
 
         for (input, expected) in cases {
             let lexer = Lexer::new(input);
