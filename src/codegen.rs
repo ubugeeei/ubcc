@@ -152,7 +152,11 @@ impl CodeGenerator {
                 println!("  push rax");
             }
             Expression::Call(call) => {
-                // TODO: support arguments
+                let registers = ["rdi", "rsi", "rdx", "rcx", "r8d", "r9d"];
+                for (i, arg) in call.arguments.iter().enumerate() {
+                    self.gen_expr(arg);
+                    println!("  pop {}", registers[i]);
+                }
                 println!("  call {}", call.callee_name);
                 println!("  push rax");
             }

@@ -111,6 +111,8 @@ assert 10 "\
 
 assert_with_link "foo" 0 "foo(); return 0;"
 
+assert_with_link "bar" 0 "bar(1, 2); return 0;"
+
 # assert 55 '
 #   sum(m, n) {
 #     acc = 0;
