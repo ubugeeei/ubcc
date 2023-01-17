@@ -1,7 +1,8 @@
 use crate::{
     ast::{
-        BinaryExpression, BinaryOperator, CallExpression, Expression, ForStatement, IfStatement,
-        Program, Statement, UnaryExpression, UnaryOperator, WhileStatement,
+        BinaryExpression, BinaryOperator, CallExpression, Expression, ForStatement,
+        FunctionDeclaration, IfStatement, Program, Statement, UnaryExpression, UnaryOperator,
+        WhileStatement,
     },
     lex::{Lexer, Token},
 };
@@ -63,6 +64,29 @@ impl Parser {
             Token::For => self.parse_for_statement(),
             Token::Return => self.parse_return_statement(),
             Token::LBrace => self.parse_block_statement(),
+            Token::Int => {
+                self.next_token(); // TODO: types
+                match self.current_token.clone() {
+                    Token::Identifier(name) => match self.peeked_token {
+                        Token::Assignment => {
+                            self.next_token();
+                            self.parse_variable_declaration(name)
+                        }
+                        Token::LParen => {
+                            self.next_token();
+                            self.parse_function_declaration(name)
+                        }
+                        _ => Err(format!(
+                            "expected token '=' or '(' but got {:?}",
+                            self.current_token
+                        )),
+                    },
+                    _ => Err(format!(
+                        "expected identifier but got {:?}",
+                        self.current_token
+                    )),
+                }
+            }
             _ => self.parse_expression_statement(),
         }
     }
@@ -217,6 +241,79 @@ impl Parser {
         }
 
         Ok(Statement::Return(expr))
+    }
+
+    fn parse_variable_declaration(&mut self, name: String) -> Result<Statement, String> {
+        if self.current_token == Token::Assignment {
+            self.next_token(); // skip '='
+        } else {
+            return Err(format!(
+                "expected token '=' but got {:?}",
+                self.peeked_token
+            ));
+        }
+
+        let expr = self.parse_expression(Precedence::Lowest)?;
+        if self.peeked_token == Token::SemiColon {
+            self.next_token();
+        } else {
+            return Err(format!(
+                "expected token ';' but got {:?}",
+                self.peeked_token
+            ));
+        }
+
+        // TODO: initialization
+        Ok(Statement::Expression(Expression::Binary(
+            BinaryExpression::new(self.new_local_var(name)?, BinaryOperator::Assignment, expr),
+        )))
+    }
+
+    fn parse_function_declaration(&mut self, name: String) -> Result<Statement, String> {
+        // if self.current_token == Token::LParen {
+        //     self.next_token();
+        // } else {
+        //     return Err(format!(
+        //         "expected token '(' but got {:?}",
+        //         self.peeked_token
+        //     ));
+        // }
+
+        let mut params = Vec::new();
+        while self.peeked_token != Token::RParen {
+            self.next_token();
+            match self.current_token.clone() {
+                Token::Identifier(name) => params.push(name),
+                _ => {
+                    return Err(format!(
+                        "expected identifier but got {:?}",
+                        self.current_token
+                    ))
+                }
+            }
+            if self.peeked_token == Token::Comma {
+                self.next_token();
+            }
+        }
+
+        if self.peeked_token == Token::RParen {
+            self.next_token();
+            self.next_token(); // skip ')'
+        } else {
+            return Err(format!(
+                "expected token ')' but got {:?}",
+                self.peeked_token
+            ));
+        }
+
+        let body = match self.parse_block_statement()? {
+            Statement::Block(body) => body,
+            _ => unreachable!(),
+        };
+
+        Ok(Statement::FunctionDeclaration(FunctionDeclaration::new(
+            name, params, body,
+        )))
     }
 
     fn parse_expression_statement(&mut self) -> Result<Statement, String> {
@@ -881,6 +978,54 @@ mod test {
                 parser.parse_expression(Precedence::Lowest).unwrap(),
                 expected
             );
+        }
+    }
+
+    #[test]
+    fn test_parse_variable_definition() {
+        let cases = vec![(
+            String::from("int a = 0;"),
+            Statement::Expression(Expression::Binary(BinaryExpression::new(
+                Expression::LocalVariable {
+                    name: String::from("a"),
+                    offset: 8,
+                },
+                BinaryOperator::Assignment,
+                Expression::Integer(0),
+            ))),
+        )];
+
+        for (input, expected) in cases {
+            let lexer = Lexer::new(input);
+            let mut parser = Parser::new(lexer);
+            assert_eq!(parser.parse_statement().unwrap(), expected);
+        }
+    }
+
+    #[test]
+    fn test_parse_function_definition() {
+        let cases = vec![
+            (
+                String::from("int foo() { return 0; }"),
+                Statement::FunctionDeclaration(FunctionDeclaration::new(
+                    String::from("foo"),
+                    vec![],
+                    vec![Statement::Return(Expression::Integer(0))],
+                )),
+            ),
+            (
+                String::from("int foo(a, b) { return 0; }"),
+                Statement::FunctionDeclaration(FunctionDeclaration::new(
+                    String::from("foo"),
+                    vec![String::from("a"), String::from("b")],
+                    vec![Statement::Return(Expression::Integer(0))],
+                )),
+            ),
+        ];
+        for (input, expected) in cases {
+            let lexer = Lexer::new(input);
+            let mut parser = Parser::new(lexer);
+            assert_eq!(parser.parse_statement().unwrap(), expected);
         }
     }
 

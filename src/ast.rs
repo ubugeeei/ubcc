@@ -16,6 +16,7 @@ pub(crate) enum Statement {
     For(ForStatement),
     Block(Vec<Statement>),
     Return(Expression),
+    FunctionDeclaration(FunctionDeclaration),
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -71,6 +72,22 @@ impl ForStatement {
             condition,
             post: post.map(Box::new),
             body: Box::new(body),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) struct FunctionDeclaration {
+    pub(crate) name: String,
+    pub(crate) arguments: Vec<String>,
+    pub(crate) body: Vec<Statement>,
+}
+impl FunctionDeclaration {
+    pub(crate) fn new(name: String, arguments: Vec<String>, body: Vec<Statement>) -> Self {
+        Self {
+            name,
+            arguments,
+            body,
         }
     }
 }
