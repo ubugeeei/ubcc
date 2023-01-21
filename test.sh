@@ -4,7 +4,7 @@ assert() {
   expected="$1"
   input="$2"
 
-  ${UBCC} "$input" > target/tmp.s
+  ${UBCC} "$input" >target/tmp.s
   cc -o target/tmp target/tmp.s
   ./target/tmp
   actual="$?"
@@ -22,8 +22,8 @@ assert_with_link() {
   expected="$2"
   input="$3"
 
-  ${UBCC} "$input" > target/tmp.s
-  cc -c target/tmp.s -o target/tmp.o 
+  ${UBCC} "$input" >target/tmp.s
+  cc -c target/tmp.s -o target/tmp.o
   cc -c lib/"$1".c -o target/"$1".o
   cc -o target/tmp target/tmp.o target/"$1".o
   ./target/tmp
@@ -37,81 +37,204 @@ assert_with_link() {
   fi
 }
 
-assert 0 "return 0;"
-assert 42 "return 42;"
+assert 0 "\
+  int main() {
+    return 0;
+  }
+"
+assert 42 "\
+  int main() {
+    return 42;
+  }
+"
 
-assert 21 "return 5 + 20 - 4;"
-assert 47 'return 5 + 6 * 7;'
+assert 21 "\
+  int main() {
+    return 5 + 20 - 4;
+  }"
+assert 47 "\
+  int main() {
+    return 5 + 6 * 7;
+  }
+"
 
-assert 15 'return 5 * (9 - 6);'
-assert 4 'return (3 + 5) / 2;'
+assert 15 "\
+  int main() {
+    return 5 * (9 - 6);
+  }"
+assert 4 "\
+  int main() {
+    return (3 + 5) / 2;
+  }"
 
-assert 0 'return 0 == 1;'
-assert 1 'return 42 == 42;'
-assert 1 'return 0 != 1;'
-assert 0 'return 42 != 42;'
+assert 0 "\
+  int main() {
+    return 0 == 1;
+  }
+"
+assert 1 "\
+  int main() {
+    return 42 == 42;
+  }
+"
+assert 1 "\
+  int main() {
+    return 0 != 1;
+  }
+"
+assert 0 "\
+  int main() {
+    return 42 != 42;
+  }
+"
 
-assert 1 'return 0 < 1;'
-assert 0 'return 1 < 1;'
-assert 0 'return 2 < 1;'
-assert 1 'return 0 <= 1;'
-assert 1 'return 1 <= 1;'
-assert 0 'return 2 <= 1;'
+assert 1 "\
+  int main() {
+    return 0 < 1;
+  }
+"
+assert 0 "\
+  int main() {
+    return 1 < 1;
+  }
+"
+assert 0 "\
+  int main() {
+    return 2 < 1;
+  }
+"
+assert 1 "\
+  int main() {
+    return 0 <= 1;
+  }
+"
+assert 1 "\
+  int main() {
+    return 1 <= 1;
+  }
+"
+assert 0 "\
+  int main() {
+    return 2 <= 1;
+  }
+"
 
-assert 1 'return 1 > 0;'
-assert 0 'return 1 > 1;'
-assert 0 'return 1 > 2;'
-assert 1 'return 1 >= 0;'
-assert 1 'return 1 >= 1;'
-assert 0 'return 1 >= 2;'
+assert 1 "\
+  int main() {
+    return 1 > 0;
+  }
+"
+assert 0 "\
+  int main() {
+    return 1 > 1;
+  }
+"
+assert 0 "\
+  int main() {
+    return 1 > 2;
+  }
+"
+assert 1 "\
+  int main() {
+    return 1 >= 0;
+  }
+"
+assert 1 "\
+  int main() {
+    return 1 >= 1;
+  }
+"
+assert 0 "\
+  int main() {
+    return 1 >= 2;
+  }
+"
 
-assert 4 'a = 2; return a + 2;'
-assert 7 "\
-  a = 2;\
-  z = 5;\
-  c = a + z;\
-  return c;\
+assert 4 "\
+  int main() {
+    a = 2;
+    return a + 2;
+  }
 "
 assert 7 "\
-  foo = 2;\
-  z = 5;\
-  return foo + z;\
+  int main() {
+    a = 2;
+    z = 5;
+    c = a + z;
+    return c;
+  }
+"
+assert 7 "\
+  int main() {
+    foo = 2;
+    z = 5;
+    return foo + z;
+  }
 "
 
 assert 54 "\
-  foo = 4;\
-  z = 5;\
-  if (foo / 2 == 2) z = 50;\
-  return foo + z;\
+  int main() {
+    foo = 4;
+    z = 5;
+    if (foo / 2 == 2) z = 50;
+    return foo + z;
+  }
 "
 
 assert 110 "\
-  foo = 10;\
-  if (foo / 2 == 2) z = 50; else z = 100;\
-  return foo + z;\
+  int main() {
+    foo = 10;
+    if (foo / 2 == 2) z = 50; else z = 100;
+    return foo + z;
+  }
 "
 
 assert 10 "\
-  i = 0;\
-  while (i < 10) i = i + 1;\
-  return i;\
+  int main() {
+    i = 0;
+    while (i < 10) i = i + 1;
+    return i;
+  }
 "
 
 assert 10 "\
-  for (i = 0; i < 10; i = i + 1) 0;\
-  return i;\
+  int main() {
+    for (i = 0; i < 10; i = i + 1) {}
+    return i;
+  }
 "
 
 assert 10 "\
-  for (i = 1; i < 10; i = i + 2) {\
-    i = i - 1;\
-  }\
-  return i;\
+  int main() {
+    for (i = 1; i < 10; i = i + 2) {
+      i = i - 1;
+    }
+    return i;
+  }
 "
 
-assert_with_link "foo" 0 "foo(); return 0;"
+assert_with_link "foo" 0 "\
+  int main() {
+    foo();
+    return 0;
+  }
+"
 
-assert_with_link "bar" 0 "bar(1, 2); return 0;"
+assert_with_link "bar" 0 "\
+  int main() {
+    bar(1, 2);
+    return 0;
+  }
+"
+
+# assert 10 "\
+#   int foo(i) {
+#     return i;
+#   }
+#   int main() {
+#     return foo(10);
+#   }
+# "
 
 # assert 55 '
 #   sum(m, n) {

@@ -1,5 +1,6 @@
 use crate::ast::{
-    BinaryOperator, Expression, ForStatement, IfStatement, Program, Statement, WhileStatement,
+    BinaryOperator, Expression, ForStatement, FunctionDeclaration, IfStatement, Program, Statement,
+    WhileStatement,
 };
 
 // entry
@@ -20,9 +21,9 @@ impl CodeGenerator {
     fn gen(&self) {
         for stmt in self.ast.statements.iter() {
             self.gen_stmt(stmt);
-            println!("# stack overflow prevention.");
-            println!("  pop rax");
-            println!("");
+            // println!("# stack overflow prevention.");
+            // println!("  pop rax");
+            // println!("");
         }
     }
 
@@ -34,6 +35,7 @@ impl CodeGenerator {
             Statement::Block(stmts) => self.gen_stmts(stmts),
             Statement::Expression(expr) => self.gen_expr(expr),
             Statement::Return(expr) => self.gen_return(expr),
+            Statement::FunctionDeclaration(function_def) => self.gen_function_def(function_def),
             _ => todo!(),
         }
     }
@@ -129,14 +131,35 @@ impl CodeGenerator {
     }
 
     fn gen_return(&self, node: &Expression) {
-        println!("# -- start return");
+        println!("  # -- return");
         self.gen_expr(node);
         println!("  # epilogue");
         println!("  pop rax");
         println!("  mov rsp, rbp");
         println!("  pop rbp");
         println!("  ret");
-        println!("# -- end return");
+        println!("");
+    }
+
+    fn gen_function_def(&self, function_def: &FunctionDeclaration) {
+        println!("# ====== function definition ======");
+        println!("{}:", function_def.name);
+        println!("  # prologue");
+        println!("  push rbp");
+        println!("  mov rbp, rsp");
+        println!("");
+        println!("  # arguments");
+        let registers = ["rdi", "rsi", "rdx", "rcx", "r8d", "r9d"];
+        for (i, _arg) in function_def.arguments.iter().enumerate() {
+            println!("  mov [rbp-{:#04x}], {}", (i + 1) * 8, registers[i]);
+        }
+        if function_def.arguments.len() == 0 {
+            println!("    # --");
+        }
+        println!("");
+
+        println!("  # body");
+        self.gen_stmts(&function_def.body);
         println!("");
     }
 
@@ -160,6 +183,7 @@ impl CodeGenerator {
                     self.gen_expr(arg);
                     println!("  pop {}", registers[i]);
                 }
+                println!("  mov rax, 0x0");
                 println!("  call {}", call.callee_name);
                 println!("  push rax");
             }

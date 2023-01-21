@@ -22,11 +22,11 @@ fn main() {
     println!(".global main");
     println!("");
 
-    println!("main:");
-    println!("  # prologue");
-    println!("  push rbp");
-    println!("  mov rbp, rsp");
-    println!("");
-
+    // println!("main:");
+    // println!("  # prologue");
+    // println!("  push rbp");
+    // println!("  mov rbp, rsp");
+    // println!("");
+    
     codegen::gen(ast);
 }
