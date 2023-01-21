@@ -150,8 +150,13 @@ impl CodeGenerator {
         println!("");
         println!("  # arguments");
         let registers = ["rdi", "rsi", "rdx", "rcx", "r8d", "r9d"];
-        for (i, _arg) in function_def.arguments.iter().enumerate() {
-            println!("  mov [rbp-{:#04x}], {}", (i + 1) * 8, registers[i]);
+        for (i, arg) in function_def.arguments.iter().enumerate() {
+            let offset = match arg {
+                Expression::LocalVariable { offset, .. } => offset,
+                _ => panic!("invalid argument"),
+            };
+            // println!("  mov [rbp-{:#04x}], {}", offset, registers[i]);
+            println!("  mov [rbp-{}], {}", offset, registers[i]);
         }
         if function_def.arguments.len() == 0 {
             println!("    # --");
@@ -188,40 +193,68 @@ impl CodeGenerator {
                 println!("  push rax");
             }
             Expression::Binary(bin) => {
-                self.gen_expr(&*bin.lhs);
-                self.gen_expr(&*bin.rhs);
-                println!("  pop rdi");
-                println!("  pop rax");
                 match bin.op {
                     BinaryOperator::Plus => {
+                        self.gen_expr(&*bin.lhs);
+                        self.gen_expr(&*bin.rhs);
+                        println!("  pop rdi");
+                        println!("  pop rax");
                         println!("  add rax, rdi");
                     }
                     BinaryOperator::Minus => {
+                        self.gen_expr(&*bin.lhs);
+                        self.gen_expr(&*bin.rhs);
+                        println!("  pop rdi");
+                        println!("  pop rax");
                         println!("  sub rax, rdi");
                     }
                     BinaryOperator::Asterisk => {
+                        self.gen_expr(&*bin.lhs);
+                        self.gen_expr(&*bin.rhs);
+                        println!("  pop rdi");
+                        println!("  pop rax");
                         println!("  imul rax, rdi");
                     }
                     BinaryOperator::Slash => {
+                        self.gen_expr(&*bin.lhs);
+                        self.gen_expr(&*bin.rhs);
+                        println!("  pop rdi");
+                        println!("  pop rax");
                         println!("  cqo");
                         println!("  idiv rdi");
                     }
                     BinaryOperator::Lt => {
+                        self.gen_expr(&*bin.lhs);
+                        self.gen_expr(&*bin.rhs);
+                        println!("  pop rdi");
+                        println!("  pop rax");
                         println!("  cmp rax, rdi");
                         println!("  setl al");
                         println!("  movzb rax, al");
                     }
                     BinaryOperator::LtEq => {
+                        self.gen_expr(&*bin.lhs);
+                        self.gen_expr(&*bin.rhs);
+                        println!("  pop rdi");
+                        println!("  pop rax");
                         println!("  cmp rax, rdi");
                         println!("  setle al");
                         println!("  movzb rax, al");
                     }
                     BinaryOperator::Eq => {
+                        self.gen_expr(&*bin.lhs);
+                        self.gen_expr(&*bin.rhs);
+                        println!("  pop rdi");
+                        println!("  pop rax");
                         println!("  cmp rax, rdi");
                         println!("  sete al");
                         println!("  movzb rax, al");
                     }
                     BinaryOperator::NotEq => {
+                        self.gen_expr(&*bin.lhs);
+                        self.gen_expr(&*bin.rhs);
+                        println!("  pop rdi");
+                        println!("  pop rax");
                         println!("  cmp rax, rdi");
                         println!("  setne al");
                         println!("  movzb rax, al");

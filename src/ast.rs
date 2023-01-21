@@ -79,11 +79,11 @@ impl ForStatement {
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) struct FunctionDeclaration {
     pub(crate) name: String,
-    pub(crate) arguments: Vec<String>,
+    pub(crate) arguments: Vec<Expression>, // Expression::LocalVariable
     pub(crate) body: Vec<Statement>,
 }
 impl FunctionDeclaration {
-    pub(crate) fn new(name: String, arguments: Vec<String>, body: Vec<Statement>) -> Self {
+    pub(crate) fn new(name: String, arguments: Vec<Expression>, body: Vec<Statement>) -> Self {
         Self {
             name,
             arguments,

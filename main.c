@@ -1,6 +1,2 @@
-  int foo(i) {
-    return i;
-  }
-  int main() {
-    return foo(10);
-  }
+int main() { return foo(10); }
+int foo(i) { return i; }

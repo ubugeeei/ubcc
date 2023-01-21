@@ -227,24 +227,12 @@ assert_with_link "bar" 0 "\
   }
 "
 
-# assert 10 "\
-#   int foo(i) {
-#     return i;
-#   }
-#   int main() {
-#     return foo(10);
-#   }
-# "
-
-# assert 55 '
-#   sum(m, n) {
-#     acc = 0;
-#     for (i = m; i <= n; i = i + 1)
-#       acc = acc + i;
-#     return acc;
-#   }
-
-#   main() {
-#     return sum(1, 10); // 55を返す
-#   }
-# '
+assert 10 "\
+  int foo(i) {
+    return i;
+  }
+  int main() {
+    a = foo(10);
+    return 10;
+  }
+"

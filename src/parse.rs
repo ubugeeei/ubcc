@@ -306,6 +306,11 @@ impl Parser {
             ));
         }
 
+        let params = params
+            .iter()
+            .map(|name| self.new_local_var(name.clone()))
+            .collect::<Result<Vec<_>, _>>()?;
+
         let body = match self.parse_block_statement()? {
             Statement::Block(body) => body,
             _ => unreachable!(),
@@ -1017,7 +1022,16 @@ mod test {
                 String::from("int foo(a, b) { return 0; }"),
                 Statement::FunctionDeclaration(FunctionDeclaration::new(
                     String::from("foo"),
-                    vec![String::from("a"), String::from("b")],
+                    vec![
+                        Expression::LocalVariable {
+                            name: String::from("a"),
+                            offset: 8,
+                        },
+                        Expression::LocalVariable {
+                            name: String::from("b"),
+                            offset: 16,
+                        },
+                    ],
                     vec![Statement::Return(Expression::Integer(0))],
                 )),
             ),
@@ -1055,6 +1069,49 @@ mod test {
                         vec![Expression::Integer(1), Expression::Integer(2)],
                     ))),
                     Statement::Return(Expression::Integer(0)),
+                ]),
+            ),
+            (
+                String::from(
+                    r#"
+                        int foo(i) {
+                            return i;
+                        }
+                        int main() {
+                            a = foo(10);
+                            return 10;
+                        }"#,
+                ),
+                Program::new(vec![
+                    Statement::FunctionDeclaration(FunctionDeclaration::new(
+                        String::from("foo"),
+                        vec![Expression::LocalVariable {
+                            name: String::from("i"),
+                            offset: 8,
+                        }],
+                        vec![Statement::Return(Expression::LocalVariable {
+                            name: String::from("i"),
+                            offset: 8,
+                        })],
+                    )),
+                    Statement::FunctionDeclaration(FunctionDeclaration::new(
+                        String::from("main"),
+                        vec![],
+                        vec![
+                            Statement::Expression(Expression::Binary(BinaryExpression::new(
+                                Expression::LocalVariable {
+                                    name: String::from("a"),
+                                    offset: 16,
+                                },
+                                BinaryOperator::Assignment,
+                                Expression::Call(CallExpression::new(
+                                    String::from("foo"),
+                                    vec![Expression::Integer(10)],
+                                )),
+                            ))),
+                            Statement::Return(Expression::Integer(10)),
+                        ],
+                    )),
                 ]),
             ),
         ];
