@@ -21,9 +21,6 @@ impl CodeGenerator {
     fn gen(&self) {
         for stmt in self.ast.statements.iter() {
             self.gen_stmt(stmt);
-            // println!("# stack overflow prevention.");
-            // println!("  pop rax");
-            // println!("");
         }
     }
 
@@ -36,7 +33,7 @@ impl CodeGenerator {
             Statement::Expression(expr) => self.gen_expr(expr),
             Statement::Return(expr) => self.gen_return(expr),
             Statement::FunctionDeclaration(function_def) => self.gen_function_def(function_def),
-            _ => todo!(),
+            // _ => todo!(),
         }
     }
 
