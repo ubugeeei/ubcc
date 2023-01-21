@@ -152,7 +152,6 @@ impl CodeGenerator {
                 Expression::LocalVariable { offset, .. } => offset,
                 _ => panic!("invalid argument"),
             };
-            // println!("  mov [rbp-{:#04x}], {}", offset, registers[i]);
             println!("  mov [rbp-{}], {}", offset, registers[i]);
         }
         if function_def.arguments.len() == 0 {
