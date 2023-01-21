@@ -1,5 +1,5 @@
 use crate::ast::{
-    BinaryOperator, Expression, ForStatement, FunctionDeclaration, IfStatement, Program, Statement,
+    BinaryOperator, Expression, ForStatement, FunctionDefinition, IfStatement, Program, Statement,
     WhileStatement,
 };
 
@@ -32,7 +32,9 @@ impl CodeGenerator {
             Statement::Block(stmts) => self.gen_stmts(stmts),
             Statement::Expression(expr) => self.gen_expr(expr),
             Statement::Return(expr) => self.gen_return(expr),
-            Statement::FunctionDeclaration(function_def) => self.gen_function_def(function_def),
+            Statement::FunctionDefinition(function_def) => {
+                self.gen_function_definition(function_def)
+            }
             // _ => todo!(),
         }
     }
@@ -138,7 +140,7 @@ impl CodeGenerator {
         println!("");
     }
 
-    fn gen_function_def(&self, function_def: &FunctionDeclaration) {
+    fn gen_function_definition(&self, function_def: &FunctionDefinition) {
         println!("# ====== function definition ======");
         println!("{}:", function_def.name);
         println!("  # prologue");

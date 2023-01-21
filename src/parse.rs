@@ -1,7 +1,7 @@
 use crate::{
     ast::{
         BinaryExpression, BinaryOperator, CallExpression, Expression, ForStatement,
-        FunctionDeclaration, IfStatement, Program, Statement, UnaryExpression, UnaryOperator,
+        FunctionDefinition, IfStatement, Program, Statement, UnaryExpression, UnaryOperator,
         WhileStatement,
     },
     lex::{Lexer, Token},
@@ -316,7 +316,7 @@ impl Parser {
             _ => unreachable!(),
         };
 
-        Ok(Statement::FunctionDeclaration(FunctionDeclaration::new(
+        Ok(Statement::FunctionDefinition(FunctionDefinition::new(
             name, params, body,
         )))
     }
@@ -1012,7 +1012,7 @@ mod test {
         let cases = vec![
             (
                 String::from("int foo() { return 0; }"),
-                Statement::FunctionDeclaration(FunctionDeclaration::new(
+                Statement::FunctionDefinition(FunctionDefinition::new(
                     String::from("foo"),
                     vec![],
                     vec![Statement::Return(Expression::Integer(0))],
@@ -1020,7 +1020,7 @@ mod test {
             ),
             (
                 String::from("int foo(a, b) { return 0; }"),
-                Statement::FunctionDeclaration(FunctionDeclaration::new(
+                Statement::FunctionDefinition(FunctionDefinition::new(
                     String::from("foo"),
                     vec![
                         Expression::LocalVariable {
@@ -1083,7 +1083,7 @@ mod test {
                         }"#,
                 ),
                 Program::new(vec![
-                    Statement::FunctionDeclaration(FunctionDeclaration::new(
+                    Statement::FunctionDefinition(FunctionDefinition::new(
                         String::from("foo"),
                         vec![Expression::LocalVariable {
                             name: String::from("i"),
@@ -1094,7 +1094,7 @@ mod test {
                             offset: 8,
                         })],
                     )),
-                    Statement::FunctionDeclaration(FunctionDeclaration::new(
+                    Statement::FunctionDefinition(FunctionDefinition::new(
                         String::from("main"),
                         vec![],
                         vec![
