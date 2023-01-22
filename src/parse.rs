@@ -71,8 +71,7 @@ impl Parser {
             | Token::Long
             | Token::Float
             | Token::Double => {
-                let ty = self.current_token.clone(); // TODO: types
-                self.next_token();
+                let ty = self.parse_type()?;
                 match self.current_token.clone() {
                     Token::Identifier(name) => match self.peeked_token {
                         Token::Assignment | Token::SemiColon => {
@@ -250,18 +249,11 @@ impl Parser {
         Ok(Statement::Return(expr))
     }
 
-    fn parse_variable_declaration(&mut self, ty: Token, name: String) -> Result<Statement, String> {
-        let ty = match ty {
-            Token::Void => TypeEnum::Void,
-            Token::Char => TypeEnum::Char,
-            Token::Short => TypeEnum::Short,
-            Token::Int => TypeEnum::Int,
-            Token::Long => TypeEnum::Long,
-            Token::Float => TypeEnum::Float,
-            Token::Double => TypeEnum::Double,
-            _ => unreachable!(),
-        };
-
+    fn parse_variable_declaration(
+        &mut self,
+        type_: Type,
+        name: String,
+    ) -> Result<Statement, String> {
         let offset = match self.new_local_var(name.clone())? {
             // TODO: size
             Expression::LocalVariable { offset, .. } => offset,
@@ -284,9 +276,7 @@ impl Parser {
         self.next_token(); // skip ';'
 
         Ok(Statement::InitDeclaration(InitDeclaration::new(
-            name,
-            offset,
-            Type::Primitive(TypeEnum::Int), // TODO: other types
+            name, offset, type_, // TODO: other types
             init_expr,
         )))
     }
@@ -295,19 +285,8 @@ impl Parser {
         let mut params = Vec::new();
         while self.peeked_token != Token::RParen {
             self.next_token();
-            // TODO: parse type
-            let type_ = match self.current_token.clone() {
-                Token::Void => Type::Primitive(TypeEnum::Void),
-                Token::Char => Type::Primitive(TypeEnum::Char),
-                Token::Short => Type::Primitive(TypeEnum::Short),
-                Token::Int => Type::Primitive(TypeEnum::Int),
-                Token::Long => Type::Primitive(TypeEnum::Long),
-                Token::Float => Type::Primitive(TypeEnum::Float),
-                Token::Double => Type::Primitive(TypeEnum::Double),
-                _ => return Err(format!("expected type but got {:?}", self.current_token)),
-            };
+            let type_ = self.parse_type()?;
 
-            self.next_token();
             let name = match self.current_token.clone() {
                 Token::Identifier(name) => name,
                 _ => {
@@ -497,6 +476,43 @@ impl Parser {
         };
         self.locals.push(v);
         Ok(Expression::LocalVariable { name, offset })
+    }
+
+    fn parse_type(&mut self) -> Result<Type, String> {
+        let base = match self.current_token {
+            Token::Void => Type::Primitive(TypeEnum::Void),
+            Token::Char => Type::Primitive(TypeEnum::Char),
+            Token::Short => Type::Primitive(TypeEnum::Short),
+            Token::Int => Type::Primitive(TypeEnum::Int),
+            Token::Long => Type::Primitive(TypeEnum::Long),
+            Token::Float => Type::Primitive(TypeEnum::Float),
+            Token::Double => Type::Primitive(TypeEnum::Double),
+            _ => return Err(format!("Expected type, but got {:?}", self.current_token)),
+        };
+        self.next_token();
+
+        let mut t = base;
+        // TODO: array
+        while self.current_token == Token::Asterisk {
+            t = Type::Pointer(Box::new(t));
+            self.next_token();
+        }
+        Ok(t)
+    }
+
+    fn size_of(&self, t: &Type) -> usize {
+        match t {
+            Type::Primitive(TypeEnum::Void) => 0,
+            Type::Primitive(TypeEnum::Char) => 1,
+            Type::Primitive(TypeEnum::Short) => 2,
+            Type::Primitive(TypeEnum::Int) => 4,
+            Type::Primitive(TypeEnum::Long) => 8,
+            Type::Primitive(TypeEnum::Float) => 4,
+            Type::Primitive(TypeEnum::Double) => 8,
+            Type::Pointer(_) => 8,
+            // TODO: array
+            Type::Array { .. } => todo!(),
+        }
     }
 
     fn peek_precedence(&self) -> Precedence {
@@ -1041,6 +1057,17 @@ mod test {
                     String::from("i"),
                     8,
                     Type::Pointer(Box::new(Type::Primitive(TypeEnum::Int))),
+                    None,
+                )),
+            ),
+            (
+                String::from("int **i;"),
+                Statement::InitDeclaration(InitDeclaration::new(
+                    String::from("i"),
+                    8,
+                    Type::Pointer(Box::new(Type::Pointer(Box::new(Type::Primitive(
+                        TypeEnum::Int,
+                    ))))),
                     None,
                 )),
             ),
