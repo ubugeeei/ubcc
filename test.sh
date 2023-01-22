@@ -152,30 +152,30 @@ assert 0 "\
 
 assert 4 "\
   int main() {
-    a = 2;
+    int a = 2;
     return a + 2;
   }
 "
 assert 7 "\
   int main() {
-    a = 2;
-    z = 5;
-    c = a + z;
+    int a = 2;
+    int z = 5;
+    int c = a + z;
     return c;
   }
 "
 assert 7 "\
   int main() {
-    foo = 2;
-    z = 5;
+    int foo = 2;
+    int z = 5;
     return foo + z;
   }
 "
 
 assert 54 "\
   int main() {
-    foo = 4;
-    z = 5;
+    int foo = 4;
+    int z = 5;
     if (foo / 2 == 2) z = 50;
     return foo + z;
   }
@@ -183,7 +183,7 @@ assert 54 "\
 
 assert 110 "\
   int main() {
-    foo = 10;
+    int foo = 10;
     if (foo / 2 == 2) z = 50; else z = 100;
     return foo + z;
   }
@@ -191,7 +191,7 @@ assert 110 "\
 
 assert 10 "\
   int main() {
-    i = 0;
+    int i = 0;
     while (i < 10) i = i + 1;
     return i;
   }
@@ -199,13 +199,7 @@ assert 10 "\
 
 assert 10 "\
   int main() {
-    for (i = 0; i < 10; i = i + 1) {}
-    return i;
-  }
-"
-
-assert 10 "\
-  int main() {
+    int i = 0;
     for (i = 1; i < 10; i = i + 2) {
       i = i - 1;
     }
