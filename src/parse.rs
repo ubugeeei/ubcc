@@ -265,7 +265,9 @@ impl Parser {
             Token::SemiColon => None,
             Token::Assignment => {
                 self.next_token();
-                Some(self.parse_expression(Precedence::Lowest)?)
+                let e = Some(self.parse_expression(Precedence::Lowest)?);
+                self.next_token();
+                e
             }
             _ => {
                 return Err(format!(
@@ -274,7 +276,6 @@ impl Parser {
                 ))
             }
         };
-        self.next_token(); // skip ';'
 
         Ok(Statement::InitDeclaration(InitDeclaration::new(
             name, offset, type_, // TODO: other types

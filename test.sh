@@ -190,15 +190,18 @@ assert 110 "\
   }
 "
 
-# FIXME: parse no init vaar dec
-# assert 110 "\
-#   int main() {
-#     int foo;
-#     int z = 0;
-#     if (foo / 2 == 2) z = 50; else z = 100;
-#     return foo + z;
-#   }
-# "
+assert 150 "\
+  int main() {
+    int foo = 100;
+    int z;
+    if (foo / 2 == 50) {
+      z = 50;
+    } else {
+      z = 100;
+    }
+    return foo + z;
+  }
+"
 
 assert 10 "\
   int main() {
