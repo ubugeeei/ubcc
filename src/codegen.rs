@@ -35,7 +35,7 @@ impl CodeGenerator {
             Statement::FunctionDefinition(function_def) => {
                 self.gen_function_definition(function_def)
             }
-            // _ => todo!(),
+            _ => todo!(),
         }
     }
 

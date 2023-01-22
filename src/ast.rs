@@ -96,12 +96,18 @@ impl FunctionDefinition {
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) struct InitDeclaration {
     name: String,
+    offset: i32,
     type_: Type,
     init: Option<Expression>,
 }
 impl InitDeclaration {
-    pub(crate) fn new(name: String, type_: Type, init: Option<Expression>) -> Self {
-        Self { name, type_, init }
+    pub(crate) fn new(name: String, offset: i32, type_: Type, init: Option<Expression>) -> Self {
+        Self {
+            name,
+            offset,
+            type_,
+            init,
+        }
     }
 }
 
@@ -111,6 +117,15 @@ pub(crate) struct Type {
     type_: TypeEnum,
     pointer: bool,
     singed: bool,
+}
+impl Type {
+    pub(crate) fn new(type_: TypeEnum, pointer: bool, singed: bool) -> Self {
+        Self {
+            type_,
+            pointer,
+            singed,
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Eq)]

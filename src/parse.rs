@@ -1,8 +1,8 @@
 use crate::{
     ast::{
         BinaryExpression, BinaryOperator, CallExpression, Expression, ForStatement,
-        FunctionDefinition, IfStatement, Program, Statement, UnaryExpression, UnaryOperator,
-        WhileStatement,
+        FunctionDefinition, IfStatement, InitDeclaration, Program, Statement, Type, TypeEnum,
+        UnaryExpression, UnaryOperator, WhileStatement,
     },
     lex::{Lexer, Token},
 };
@@ -64,13 +64,20 @@ impl Parser {
             Token::For => self.parse_for_statement(),
             Token::Return => self.parse_return_statement(),
             Token::LBrace => self.parse_block_statement(),
-            Token::Int => {
-                self.next_token(); // TODO: types
+            Token::Void
+            | Token::Char
+            | Token::Short
+            | Token::Int
+            | Token::Long
+            | Token::Float
+            | Token::Double => {
+                let ty = self.current_token.clone(); // TODO: types
+                self.next_token();
                 match self.current_token.clone() {
                     Token::Identifier(name) => match self.peeked_token {
-                        Token::Assignment => {
+                        Token::Assignment | Token::SemiColon => {
                             self.next_token();
-                            self.parse_variable_declaration(name)
+                            self.parse_variable_declaration(ty, name)
                         }
                         Token::LParen => {
                             self.next_token();
@@ -243,42 +250,50 @@ impl Parser {
         Ok(Statement::Return(expr))
     }
 
-    fn parse_variable_declaration(&mut self, name: String) -> Result<Statement, String> {
-        if self.current_token == Token::Assignment {
-            self.next_token(); // skip '='
-        } else {
-            return Err(format!(
-                "expected token '=' but got {:?}",
-                self.peeked_token
-            ));
-        }
+    fn parse_variable_declaration(&mut self, ty: Token, name: String) -> Result<Statement, String> {
+        let ty = match ty {
+            Token::Void => TypeEnum::Void,
+            Token::Char => TypeEnum::Char,
+            Token::Short => TypeEnum::Short,
+            Token::Int => TypeEnum::Int,
+            Token::Long => TypeEnum::Long,
+            Token::Float => TypeEnum::Float,
+            Token::Double => TypeEnum::Double,
+            _ => unreachable!(),
+        };
 
-        let expr = self.parse_expression(Precedence::Lowest)?;
-        if self.peeked_token == Token::SemiColon {
-            self.next_token();
-        } else {
-            return Err(format!(
-                "expected token ';' but got {:?}",
-                self.peeked_token
-            ));
-        }
+        let offset = match self.new_local_var(name.clone())? {
+            // TODO: size
+            Expression::LocalVariable { offset, .. } => offset,
+            _ => unreachable!(),
+        };
 
-        // TODO: initialization
-        Ok(Statement::Expression(Expression::Binary(
-            BinaryExpression::new(self.new_local_var(name)?, BinaryOperator::Assignment, expr),
+        let init_expr = match self.current_token {
+            Token::SemiColon => {
+                self.next_token(); // skip ';'
+                None
+            }
+            Token::Assignment => {
+                self.next_token();
+                Some(self.parse_expression(Precedence::Lowest)?)
+            }
+            _ => {
+                return Err(format!(
+                    "expected token ';' but got {:?}",
+                    self.current_token
+                ))
+            }
+        };
+
+        Ok(Statement::InitDeclaration(InitDeclaration::new(
+            name,
+            offset,
+            Type::new(ty, false, false), // TODO: pointer and signed
+            init_expr,
         )))
     }
 
     fn parse_function_declaration(&mut self, name: String) -> Result<Statement, String> {
-        // if self.current_token == Token::LParen {
-        //     self.next_token();
-        // } else {
-        //     return Err(format!(
-        //         "expected token '(' but got {:?}",
-        //         self.peeked_token
-        //     ));
-        // }
-
         let mut params = Vec::new();
         while self.peeked_token != Token::RParen {
             self.next_token();
@@ -987,18 +1002,27 @@ mod test {
     }
 
     #[test]
-    fn test_parse_variable_definition() {
-        let cases = vec![(
-            String::from("int a = 0;"),
-            Statement::Expression(Expression::Binary(BinaryExpression::new(
-                Expression::LocalVariable {
-                    name: String::from("a"),
-                    offset: 8,
-                },
-                BinaryOperator::Assignment,
-                Expression::Integer(0),
-            ))),
-        )];
+    fn test_parse_init_declaration() {
+        let cases = vec![
+            (
+                String::from("int a = 0;"),
+                Statement::InitDeclaration(InitDeclaration::new(
+                    String::from("a"),
+                    8,
+                    Type::new(TypeEnum::Int, false, false),
+                    Some(Expression::Integer(0)),
+                )),
+            ),
+            (
+                String::from("int i;"),
+                Statement::InitDeclaration(InitDeclaration::new(
+                    String::from("i"),
+                    8,
+                    Type::new(TypeEnum::Int, false, false),
+                    None,
+                )),
+            ),
+        ];
 
         for (input, expected) in cases {
             let lexer = Lexer::new(input);
