@@ -1,6 +1,6 @@
 use crate::ast::{
     BinaryOperator, Expression, ForStatement, FunctionDefinition, IfStatement, InitDeclaration,
-    Program, Statement, UnaryOperator, WhileStatement,
+    Program, Statement, Type, UnaryOperator, WhileStatement,
 };
 
 // entry
@@ -36,7 +36,6 @@ impl CodeGenerator {
                 self.gen_function_definition(function_def)
             }
             Statement::InitDeclaration(init_decl) => self.gen_init_declaration(init_decl),
-            _ => todo!(),
         }
     }
 
@@ -225,20 +224,59 @@ impl CodeGenerator {
             }
             Expression::Binary(bin) => {
                 match bin.op {
-                    BinaryOperator::Plus => {
-                        self.gen_expr(&*bin.lhs);
-                        self.gen_expr(&*bin.rhs);
-                        println!("  pop rdi");
-                        println!("  pop rax");
-                        println!("  add rax, rdi");
-                    }
-                    BinaryOperator::Minus => {
-                        self.gen_expr(&*bin.lhs);
-                        self.gen_expr(&*bin.rhs);
-                        println!("  pop rdi");
-                        println!("  pop rax");
-                        println!("  sub rax, rdi");
-                    }
+                    BinaryOperator::Plus => match &*bin.lhs {
+                        Expression::LocalVariable { type_, .. } => match type_ {
+                            Type::Pointer(_) => {
+                                self.gen_lval(&*bin.lhs);
+                                self.gen_expr(&*bin.rhs);
+                                println!("  pop rax");
+                                println!("  pop rdi");
+                                println!("  imul rax, {}", type_.size());
+                                println!("  add rax, rdi");
+                            }
+                            _ => {
+                                self.gen_expr(&*bin.lhs);
+                                self.gen_expr(&*bin.rhs);
+                                println!("  pop rdi");
+                                println!("  pop rax");
+                                println!("  add rax, rdi");
+                            }
+                        },
+                        _ => {
+                            self.gen_expr(&*bin.lhs);
+                            self.gen_expr(&*bin.rhs);
+                            println!("  pop rdi");
+                            println!("  pop rax");
+                            println!("  add rax, rdi");
+                        }
+                    },
+                    BinaryOperator::Minus => match &*bin.lhs {
+                        Expression::LocalVariable { type_, .. } => match type_ {
+                            Type::Pointer(_) => {
+                                self.gen_lval(&*bin.lhs);
+                                self.gen_expr(&*bin.rhs);
+                                println!("  pop rax");
+                                println!("  pop rdi");
+                                println!("  imul rax, {}", type_.size());
+                                println!("  add rdi, rax");
+                                println!("  mov rax, rdi");
+                            }
+                            _ => {
+                                self.gen_expr(&*bin.lhs);
+                                self.gen_expr(&*bin.rhs);
+                                println!("  pop rdi");
+                                println!("  pop rax");
+                                println!("  sub rax, rdi");
+                            }
+                        },
+                        _ => {
+                            self.gen_expr(&*bin.lhs);
+                            self.gen_expr(&*bin.rhs);
+                            println!("  pop rdi");
+                            println!("  pop rax");
+                            println!("  sub rax, rdi");
+                        }
+                    },
                     BinaryOperator::Asterisk => {
                         self.gen_expr(&*bin.lhs);
                         self.gen_expr(&*bin.rhs);
@@ -320,15 +358,9 @@ impl CodeGenerator {
                         println!("  push rdi");
                         println!("  # --end assignment");
                         println!("");
-                    } //
-                      // _ => {
-                      //     panic!("Invalid binary operator: {:?}", bin.op);
-                      // }
+                    }
                 }
                 println!("  push rax");
-            }
-            _ => {
-                panic!("Invalid node: {:?}", node);
             }
         }
     }

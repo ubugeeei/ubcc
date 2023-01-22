@@ -269,3 +269,28 @@ assert 3 "\
     return x;
   }
 "
+
+assert 100 "\
+  int main() {
+    int x = 0;
+    int a = 100;
+
+    int *p = &x;
+    p = p + 1;
+    return *p;
+  }
+"
+
+# FIXME: decrement pointer
+# assert 100 "\
+#   int main() {
+#     int x = 100;
+#     int a = 200;
+
+#     int *p = &x;
+#     p = p + 1;
+#     p = p - 1;
+
+#     return *p;
+#   }
+# "
