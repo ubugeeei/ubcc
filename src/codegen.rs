@@ -210,6 +210,32 @@ impl CodeGenerator {
                 println!("  push rax");
             }
             Expression::Call(call) => {
+                if call.callee_name == "sizeof" {
+                    match &call.arguments[0] {
+                        Expression::LocalVariable { type_, .. } => {
+                            println!("  push {}", type_.size());
+                        }
+                        Expression::Integer(_) | Expression::Binary(_) => {
+                            println!("  push 8");
+                        }
+                        Expression::Unary(u) => match u.op {
+                            UnaryOperator::Reference => {
+                                println!("  push 8");
+                            }
+                            UnaryOperator::Dereference => match &*u.expr {
+                                Expression::LocalVariable { type_, .. } => {
+                                    println!("  push {}", type_.size());
+                                }
+                                _ => panic!("invalid sizeof"),
+                            },
+                            // TODO: judge type
+                            _ => panic!("invalid sizeof"),
+                        },
+                        _ => panic!("invalid sizeof"),
+                    }
+                    return;
+                }
+
                 let registers = ["rdi", "rsi", "rdx", "rcx", "r8d", "r9d"];
                 if call.arguments.len() > registers.len() {
                     panic!("too many arguments");

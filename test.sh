@@ -294,3 +294,10 @@ assert 100 "\
 #     return *p;
 #   }
 # "
+
+assert 8 "\
+  int main() {
+    int x = 0;
+    return sizeof(x);
+  }
+"
