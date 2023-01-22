@@ -113,19 +113,10 @@ impl InitDeclaration {
 
 // TODO: Array
 #[derive(Debug, PartialEq, Eq)]
-pub(crate) struct Type {
-    type_: TypeEnum,
-    pointer: bool,
-    singed: bool,
-}
-impl Type {
-    pub(crate) fn new(type_: TypeEnum, pointer: bool, singed: bool) -> Self {
-        Self {
-            type_,
-            pointer,
-            singed,
-        }
-    }
+pub(crate) enum Type {
+    Primitive(TypeEnum),
+    Array { type_: Box<Type>, size: i32 },
+    Pointer(Box<Type>),
 }
 
 #[derive(Debug, PartialEq, Eq)]

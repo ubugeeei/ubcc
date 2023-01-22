@@ -286,7 +286,7 @@ impl Parser {
         Ok(Statement::InitDeclaration(InitDeclaration::new(
             name,
             offset,
-            Type::new(ty, false, false), // TODO: pointer and signed
+            Type::Primitive(TypeEnum::Int), // TODO: other types
             init_expr,
         )))
     }
@@ -297,13 +297,13 @@ impl Parser {
             self.next_token();
             // TODO: parse type
             let type_ = match self.current_token.clone() {
-                Token::Void => Type::new(TypeEnum::Void, false, false),
-                Token::Char => Type::new(TypeEnum::Char, false, false),
-                Token::Short => Type::new(TypeEnum::Short, false, false),
-                Token::Int => Type::new(TypeEnum::Int, false, false),
-                Token::Long => Type::new(TypeEnum::Long, false, false),
-                Token::Float => Type::new(TypeEnum::Float, false, false),
-                Token::Double => Type::new(TypeEnum::Double, false, false),
+                Token::Void => Type::Primitive(TypeEnum::Void),
+                Token::Char => Type::Primitive(TypeEnum::Char),
+                Token::Short => Type::Primitive(TypeEnum::Short),
+                Token::Int => Type::Primitive(TypeEnum::Int),
+                Token::Long => Type::Primitive(TypeEnum::Long),
+                Token::Float => Type::Primitive(TypeEnum::Float),
+                Token::Double => Type::Primitive(TypeEnum::Double),
                 _ => return Err(format!("expected type but got {:?}", self.current_token)),
             };
 
@@ -1022,7 +1022,7 @@ mod test {
                 Statement::InitDeclaration(InitDeclaration::new(
                     String::from("a"),
                     8,
-                    Type::new(TypeEnum::Int, false, false),
+                    Type::Primitive(TypeEnum::Int),
                     Some(Expression::Integer(0)),
                 )),
             ),
@@ -1031,7 +1031,16 @@ mod test {
                 Statement::InitDeclaration(InitDeclaration::new(
                     String::from("i"),
                     8,
-                    Type::new(TypeEnum::Int, false, false),
+                    Type::Primitive(TypeEnum::Int),
+                    None,
+                )),
+            ),
+            (
+                String::from("int *i;"),
+                Statement::InitDeclaration(InitDeclaration::new(
+                    String::from("i"),
+                    8,
+                    Type::Pointer(Box::new(Type::Primitive(TypeEnum::Int))),
                     None,
                 )),
             ),
