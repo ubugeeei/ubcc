@@ -111,15 +111,14 @@ impl InitDeclaration {
     }
 }
 
-// TODO: Array
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub(crate) enum Type {
     Primitive(TypeEnum),
     Array { type_: Box<Type>, size: i32 },
     Pointer(Box<Type>),
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub(crate) enum TypeEnum {
     Void,
     Char,

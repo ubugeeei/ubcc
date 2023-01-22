@@ -184,10 +184,21 @@ assert 54 "\
 assert 110 "\
   int main() {
     int foo = 10;
+    int z = 0;
     if (foo / 2 == 2) z = 50; else z = 100;
     return foo + z;
   }
 "
+
+# FIXME: parse no init vaar dec
+# assert 110 "\
+#   int main() {
+#     int foo;
+#     int z = 0;
+#     if (foo / 2 == 2) z = 50; else z = 100;
+#     return foo + z;
+#   }
+# "
 
 assert 10 "\
   int main() {
@@ -226,7 +237,7 @@ assert 10 "\
     return i;
   }
   int main() {
-    a = foo(10);
+    int a = foo(10);
     return 10;
   }
 "

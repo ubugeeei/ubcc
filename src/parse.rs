@@ -17,6 +17,7 @@ pub(crate) fn parse(input: String) -> Result<Program, String> {
 struct LVar {
     name: String,
     offset: i32,
+    type_: Type,
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd)]
@@ -254,7 +255,7 @@ impl Parser {
         type_: Type,
         name: String,
     ) -> Result<Statement, String> {
-        let offset = match self.new_local_var(name.clone())? {
+        let offset = match self.new_local_var(type_.clone(), name.clone())? {
             // TODO: size
             Expression::LocalVariable { offset, .. } => offset,
             _ => unreachable!(),
@@ -315,7 +316,7 @@ impl Parser {
 
         let params = params
             .iter()
-            .map(|(_, name)| self.new_local_var(name.clone()))
+            .map(|(t, name)| self.new_local_var(t.clone(), name.clone()))
             .collect::<Result<Vec<_>, _>>()?;
 
         let body = match self.parse_block_statement()? {
@@ -444,7 +445,7 @@ impl Parser {
                 name,
                 offset: *offset,
             }),
-            None => self.new_local_var(name),
+            None => Err(format!("Undefined variable: {}", name)),
         }
     }
 
@@ -468,11 +469,12 @@ impl Parser {
         )))
     }
 
-    fn new_local_var(&mut self, name: String) -> Result<Expression, String> {
+    fn new_local_var(&mut self, type_: Type, name: String) -> Result<Expression, String> {
         let offset = self.locals.last().map(|l| l.offset).unwrap_or(0) + 8;
         let v = LVar {
             name: name.clone(),
             offset,
+            type_,
         };
         self.locals.push(v);
         Ok(Expression::LocalVariable { name, offset })
@@ -764,67 +766,6 @@ mod test {
     }
 
     #[test]
-    fn test_parse_local_var() {
-        let cases = vec![
-            (
-                String::from("a"),
-                Expression::LocalVariable {
-                    name: String::from("a"),
-                    offset: 8,
-                },
-            ),
-            (
-                String::from("a + 2"),
-                Expression::Binary(BinaryExpression::new(
-                    Expression::LocalVariable {
-                        name: String::from("a"),
-                        offset: 8,
-                    },
-                    BinaryOperator::Plus,
-                    Expression::Integer(2),
-                )),
-            ),
-            (
-                String::from("a = b"),
-                Expression::Binary(BinaryExpression::new(
-                    Expression::LocalVariable {
-                        name: String::from("a"),
-                        offset: 8,
-                    },
-                    BinaryOperator::Assignment,
-                    Expression::LocalVariable {
-                        name: String::from("b"),
-                        offset: 16,
-                    },
-                )),
-            ),
-            (
-                String::from("foo = bar"),
-                Expression::Binary(BinaryExpression::new(
-                    Expression::LocalVariable {
-                        name: String::from("foo"),
-                        offset: 8,
-                    },
-                    BinaryOperator::Assignment,
-                    Expression::LocalVariable {
-                        name: String::from("bar"),
-                        offset: 16,
-                    },
-                )),
-            ),
-        ];
-
-        for (input, expected) in cases {
-            let lexer = Lexer::new(input);
-            let mut parser = Parser::new(lexer);
-            assert_eq!(
-                parser.parse_expression(Precedence::Lowest).unwrap(),
-                expected
-            );
-        }
-    }
-
-    #[test]
     fn test_parse_return_statement() {
         let cases = vec![
             (
@@ -852,116 +793,148 @@ mod test {
     fn test_parse_if_statement() {
         let cases = vec![
             (
-                String::from("if (a == 0) return 0; "),
-                Statement::If(IfStatement::new(
-                    Expression::Binary(BinaryExpression::new(
-                        Expression::LocalVariable {
-                            name: String::from("a"),
-                            offset: 8,
-                        },
-                        BinaryOperator::Eq,
-                        Expression::Integer(0),
+                String::from("int a = 0; if (a == 0) return 0; "),
+                vec![
+                    Statement::InitDeclaration(InitDeclaration::new(
+                        String::from("a"),
+                        8,
+                        Type::Primitive(TypeEnum::Int),
+                        Some(Expression::Integer(0)),
                     )),
-                    Statement::Return(Expression::Integer(0)),
-                    None,
-                )),
+                    Statement::If(IfStatement::new(
+                        Expression::Binary(BinaryExpression::new(
+                            Expression::LocalVariable {
+                                name: String::from("a"),
+                                offset: 8,
+                            },
+                            BinaryOperator::Eq,
+                            Expression::Integer(0),
+                        )),
+                        Statement::Return(Expression::Integer(0)),
+                        None,
+                    )),
+                ],
             ),
             (
-                String::from("if (a == 0) return 0; else return 1;"),
-                Statement::If(IfStatement::new(
-                    Expression::Binary(BinaryExpression::new(
-                        Expression::LocalVariable {
-                            name: String::from("a"),
-                            offset: 8,
-                        },
-                        BinaryOperator::Eq,
-                        Expression::Integer(0),
+                String::from("int a = 0; if (a == 0) return 0; else return 1;"),
+                vec![
+                    Statement::InitDeclaration(InitDeclaration::new(
+                        String::from("a"),
+                        8,
+                        Type::Primitive(TypeEnum::Int),
+                        Some(Expression::Integer(0)),
                     )),
-                    Statement::Return(Expression::Integer(0)),
-                    Some(Statement::Return(Expression::Integer(1))),
-                )),
+                    Statement::If(IfStatement::new(
+                        Expression::Binary(BinaryExpression::new(
+                            Expression::LocalVariable {
+                                name: String::from("a"),
+                                offset: 8,
+                            },
+                            BinaryOperator::Eq,
+                            Expression::Integer(0),
+                        )),
+                        Statement::Return(Expression::Integer(0)),
+                        Some(Statement::Return(Expression::Integer(1))),
+                    )),
+                ],
             ),
         ];
 
         for (input, expected) in cases {
             let lexer = Lexer::new(input);
             let mut parser = Parser::new(lexer);
-            assert_eq!(parser.parse_statement().unwrap(), expected);
+            assert_eq!(parser.parse().unwrap().statements, expected);
         }
     }
 
     #[test]
     fn test_parse_while_statement() {
         let cases = vec![(
-            String::from("while (a == 0) return 0; "),
-            Statement::While(WhileStatement::new(
-                Expression::Binary(BinaryExpression::new(
-                    Expression::LocalVariable {
-                        name: String::from("a"),
-                        offset: 8,
-                    },
-                    BinaryOperator::Eq,
-                    Expression::Integer(0),
+            String::from("int a = 0; while (a == 0) return 0;"),
+            vec![
+                Statement::InitDeclaration(InitDeclaration::new(
+                    String::from("a"),
+                    8,
+                    Type::Primitive(TypeEnum::Int),
+                    Some(Expression::Integer(0)),
                 )),
-                Statement::Return(Expression::Integer(0)),
-            )),
+                Statement::While(WhileStatement::new(
+                    Expression::Binary(BinaryExpression::new(
+                        Expression::LocalVariable {
+                            name: String::from("a"),
+                            offset: 8,
+                        },
+                        BinaryOperator::Eq,
+                        Expression::Integer(0),
+                    )),
+                    Statement::Return(Expression::Integer(0)),
+                )),
+            ],
         )];
 
         for (input, expected) in cases {
             let lexer = Lexer::new(input);
             let mut parser = Parser::new(lexer);
-            assert_eq!(parser.parse_statement().unwrap(), expected);
+            assert_eq!(parser.parse().unwrap().statements, expected);
         }
     }
 
     #[test]
     fn test_parse_for_statement() {
         let cases = vec![(
-            String::from("for (i = 0; i < 10; i = i + 1) return 0;"),
-            Statement::For(ForStatement::new(
-                Some(Statement::Expression(Expression::Binary(
-                    BinaryExpression::new(
-                        Expression::LocalVariable {
-                            name: String::from("i"),
-                            offset: 8,
-                        },
-                        BinaryOperator::Assignment,
-                        Expression::Integer(0),
-                    ),
-                ))),
-                Some(Expression::Binary(BinaryExpression::new(
-                    Expression::LocalVariable {
-                        name: String::from("i"),
-                        offset: 8,
-                    },
-                    BinaryOperator::Lt,
-                    Expression::Integer(10),
-                ))),
-                Some(Statement::Expression(Expression::Binary(
-                    BinaryExpression::new(
-                        Expression::LocalVariable {
-                            name: String::from("i"),
-                            offset: 8,
-                        },
-                        BinaryOperator::Assignment,
-                        Expression::Binary(BinaryExpression::new(
+            String::from("int i = 0; for (i = 0; i < 10; i = i + 1) return 0;"),
+            vec![
+                Statement::InitDeclaration(InitDeclaration::new(
+                    String::from("i"),
+                    8,
+                    Type::Primitive(TypeEnum::Int),
+                    Some(Expression::Integer(0)),
+                )),
+                Statement::For(ForStatement::new(
+                    Some(Statement::Expression(Expression::Binary(
+                        BinaryExpression::new(
                             Expression::LocalVariable {
                                 name: String::from("i"),
                                 offset: 8,
                             },
-                            BinaryOperator::Plus,
-                            Expression::Integer(1),
-                        )),
-                    ),
-                ))),
-                Statement::Return(Expression::Integer(0)),
-            )),
+                            BinaryOperator::Assignment,
+                            Expression::Integer(0),
+                        ),
+                    ))),
+                    Some(Expression::Binary(BinaryExpression::new(
+                        Expression::LocalVariable {
+                            name: String::from("i"),
+                            offset: 8,
+                        },
+                        BinaryOperator::Lt,
+                        Expression::Integer(10),
+                    ))),
+                    Some(Statement::Expression(Expression::Binary(
+                        BinaryExpression::new(
+                            Expression::LocalVariable {
+                                name: String::from("i"),
+                                offset: 8,
+                            },
+                            BinaryOperator::Assignment,
+                            Expression::Binary(BinaryExpression::new(
+                                Expression::LocalVariable {
+                                    name: String::from("i"),
+                                    offset: 8,
+                                },
+                                BinaryOperator::Plus,
+                                Expression::Integer(1),
+                            )),
+                        ),
+                    ))),
+                    Statement::Return(Expression::Integer(0)),
+                )),
+            ],
         )];
 
         for (input, expected) in cases {
             let lexer = Lexer::new(input);
             let mut parser = Parser::new(lexer);
-            assert_eq!(parser.parse_statement().unwrap(), expected);
+            assert_eq!(parser.parse().unwrap().statements, expected);
         }
     }
 
@@ -974,8 +947,14 @@ mod test {
                 Statement::Block(vec![Statement::Return(Expression::Integer(0))]),
             ),
             (
-                String::from("{ i = i + 1; return 0; }"),
+                String::from("{ int i = 0; i = i + 1; return 0; }"),
                 Statement::Block(vec![
+                    Statement::InitDeclaration(InitDeclaration::new(
+                        String::from("i"),
+                        8,
+                        Type::Primitive(TypeEnum::Int),
+                        Some(Expression::Integer(0)),
+                    )),
                     Statement::Expression(Expression::Binary(BinaryExpression::new(
                         Expression::LocalVariable {
                             name: String::from("i"),
@@ -1150,7 +1129,7 @@ mod test {
                             return i;
                         }
                         int main() {
-                            a = foo(10);
+                            int a = foo(10);
                             return 10;
                         }"#,
                 ),
@@ -1170,17 +1149,15 @@ mod test {
                         String::from("main"),
                         vec![],
                         vec![
-                            Statement::Expression(Expression::Binary(BinaryExpression::new(
-                                Expression::LocalVariable {
-                                    name: String::from("a"),
-                                    offset: 16,
-                                },
-                                BinaryOperator::Assignment,
-                                Expression::Call(CallExpression::new(
+                            Statement::InitDeclaration(InitDeclaration::new(
+                                String::from("a"),
+                                16,
+                                Type::Primitive(TypeEnum::Int),
+                                Some(Expression::Call(CallExpression::new(
                                     String::from("foo"),
                                     vec![Expression::Integer(10)],
-                                )),
-                            ))),
+                                ))),
+                            )),
                             Statement::Return(Expression::Integer(10)),
                         ],
                     )),
