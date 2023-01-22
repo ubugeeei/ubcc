@@ -17,6 +17,7 @@ pub(crate) enum Statement {
     Block(Vec<Statement>),
     Return(Expression),
     FunctionDefinition(FunctionDefinition),
+    InitDeclaration(InitDeclaration),
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -90,6 +91,37 @@ impl FunctionDefinition {
             body,
         }
     }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) struct InitDeclaration {
+    name: String,
+    type_: Type,
+    init: Option<Expression>,
+}
+impl InitDeclaration {
+    pub(crate) fn new(name: String, type_: Type, init: Option<Expression>) -> Self {
+        Self { name, type_, init }
+    }
+}
+
+// TODO: Array
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) struct Type {
+    type_: TypeEnum,
+    pointer: bool,
+    singed: bool,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) enum TypeEnum {
+    Void,
+    Char,
+    Short,
+    Int,
+    Long,
+    Float,
+    Double,
 }
 
 #[derive(Debug, PartialEq, Eq)]
