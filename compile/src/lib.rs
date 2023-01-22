@@ -5,19 +5,19 @@ use ast::{
 
 // entry
 pub fn gen(node: Program) {
-    let codegen = CodeGenerator::new(node);
+    let codegen = Compiler::new(node);
     codegen.gen();
 }
 
-struct CodeGenerator {
+struct Compiler {
     ast: Program,
 }
-impl CodeGenerator {
+impl Compiler {
     fn new(ast: Program) -> Self {
         Self { ast }
     }
 }
-impl CodeGenerator {
+impl Compiler {
     fn gen(&self) {
         println!(".intel_syntax noprefix");
         println!(".global main");
