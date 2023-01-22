@@ -25,7 +25,13 @@ pub(crate) enum Token {
     For,
     SemiColon,
     Comma,
+    Void,
+    Char,
+    Short,
     Int,
+    Long,
+    Float,
+    Double,
     Eof,
 }
 
@@ -183,7 +189,13 @@ impl Lexer {
             "else" => Token::Else,
             "while" => Token::While,
             "for" => Token::For,
+            "void" => Token::Void,
+            "char" => Token::Char,
+            "short" => Token::Short,
             "int" => Token::Int,
+            "long" => Token::Long,
+            "float" => Token::Float,
+            "double" => Token::Double,
             _ => Token::Identifier(word),
         }
     }
@@ -223,7 +235,7 @@ mod test {
     fn test_next_token() {
         {
             let input = String::from(
-                "1 + - / * ( ) { } = ! == != < > <= >= ; , a b foo bar return if else while for int",
+                "1 + - / * ( ) { } = ! == != < > <= >= ; , a b foo bar return if else while for void char short int long float double",
             );
             let mut lexer = Lexer::new(input);
             assert_eq!(lexer.next(), Token::Integer(1));
@@ -254,7 +266,13 @@ mod test {
             assert_eq!(lexer.next(), Token::Else);
             assert_eq!(lexer.next(), Token::While);
             assert_eq!(lexer.next(), Token::For);
+            assert_eq!(lexer.next(), Token::Void);
+            assert_eq!(lexer.next(), Token::Char);
+            assert_eq!(lexer.next(), Token::Short);
             assert_eq!(lexer.next(), Token::Int);
+            assert_eq!(lexer.next(), Token::Long);
+            assert_eq!(lexer.next(), Token::Float);
+            assert_eq!(lexer.next(), Token::Double);
             assert_eq!(lexer.next(), Token::Eof);
         }
         {
