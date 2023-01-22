@@ -117,6 +117,21 @@ pub(crate) enum Type {
     Array { type_: Box<Type>, size: i32 },
     Pointer(Box<Type>),
 }
+impl Type {
+    pub(crate) fn size(&self) -> usize {
+        match self {
+            Type::Primitive(TypeEnum::Void) => 0,
+            Type::Primitive(TypeEnum::Char) => 1,
+            Type::Primitive(TypeEnum::Short) => 2,
+            Type::Primitive(TypeEnum::Int) => 8, // FIXME: clash with 4 now.
+            Type::Primitive(TypeEnum::Long) => 8,
+            Type::Primitive(TypeEnum::Float) => 4,
+            Type::Primitive(TypeEnum::Double) => 8,
+            Type::Pointer(_) => 8,
+            Type::Array { size, .. } => (size * 8) as usize,
+        }
+    }
+}
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub(crate) enum TypeEnum {

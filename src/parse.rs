@@ -489,8 +489,7 @@ impl Parser {
     }
 
     fn new_local_var(&mut self, type_: Type, name: String) -> Result<Expression, String> {
-        let alloca = self.sizeof(&type_);
-        let offset = self.locals.last().map(|l| l.offset).unwrap_or(0) + alloca;
+        let offset = self.locals.last().map(|l| l.offset).unwrap_or(0) + type_.size();
         let v = LVar {
             name: name.clone(),
             offset,
@@ -524,20 +523,6 @@ impl Parser {
             self.next_token();
         }
         Ok(t)
-    }
-
-    fn sizeof(&self, t: &Type) -> usize {
-        match t {
-            Type::Primitive(TypeEnum::Void) => 0,
-            Type::Primitive(TypeEnum::Char) => 1,
-            Type::Primitive(TypeEnum::Short) => 2,
-            Type::Primitive(TypeEnum::Int) => 8, // FIXME: clash with 4 now.
-            Type::Primitive(TypeEnum::Long) => 8,
-            Type::Primitive(TypeEnum::Float) => 4,
-            Type::Primitive(TypeEnum::Double) => 8,
-            Type::Pointer(_) => 8,
-            Type::Array { size, .. } => (size * 8) as usize,
-        }
     }
 
     fn peek_precedence(&self) -> Precedence {
