@@ -500,7 +500,7 @@ impl Parser {
         Ok(t)
     }
 
-    fn size_of(&self, t: &Type) -> usize {
+    fn sizeof(&self, t: &Type) -> usize {
         match t {
             Type::Primitive(TypeEnum::Void) => 0,
             Type::Primitive(TypeEnum::Char) => 1,
