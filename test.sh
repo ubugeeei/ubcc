@@ -222,7 +222,7 @@ assert_with_link "bar" 0 "\
 "
 
 assert 10 "\
-  int foo(i) {
+  int foo(int i) {
     return i;
   }
   int main() {

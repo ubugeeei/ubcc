@@ -295,18 +295,33 @@ impl Parser {
         let mut params = Vec::new();
         while self.peeked_token != Token::RParen {
             self.next_token();
-            match self.current_token.clone() {
-                Token::Identifier(name) => params.push(name),
+            // TODO: parse type
+            let type_ = match self.current_token.clone() {
+                Token::Void => Type::new(TypeEnum::Void, false, false),
+                Token::Char => Type::new(TypeEnum::Char, false, false),
+                Token::Short => Type::new(TypeEnum::Short, false, false),
+                Token::Int => Type::new(TypeEnum::Int, false, false),
+                Token::Long => Type::new(TypeEnum::Long, false, false),
+                Token::Float => Type::new(TypeEnum::Float, false, false),
+                Token::Double => Type::new(TypeEnum::Double, false, false),
+                _ => return Err(format!("expected type but got {:?}", self.current_token)),
+            };
+
+            self.next_token();
+            let name = match self.current_token.clone() {
+                Token::Identifier(name) => name,
                 _ => {
                     return Err(format!(
                         "expected identifier but got {:?}",
-                        self.current_token
+                        self.peeked_token
                     ))
                 }
-            }
+            };
             if self.peeked_token == Token::Comma {
                 self.next_token();
             }
+
+            params.push((type_, name));
         }
 
         if self.peeked_token == Token::RParen {
@@ -321,7 +336,7 @@ impl Parser {
 
         let params = params
             .iter()
-            .map(|name| self.new_local_var(name.clone()))
+            .map(|(_, name)| self.new_local_var(name.clone()))
             .collect::<Result<Vec<_>, _>>()?;
 
         let body = match self.parse_block_statement()? {
@@ -1041,7 +1056,7 @@ mod test {
                 )),
             ),
             (
-                String::from("int foo(a, b) { return 0; }"),
+                String::from("int foo(int a, int b) { return 0; }"),
                 Statement::FunctionDefinition(FunctionDefinition::new(
                     String::from("foo"),
                     vec![
@@ -1096,7 +1111,7 @@ mod test {
             (
                 String::from(
                     r#"
-                        int foo(i) {
+                        int foo(int i) {
                             return i;
                         }
                         int main() {
