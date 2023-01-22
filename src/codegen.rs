@@ -292,8 +292,25 @@ impl CodeGenerator {
                     }
                     BinaryOperator::Assignment => {
                         println!("  # --start assignment");
+
                         println!("  # --left");
-                        self.gen_lval(&*bin.lhs);
+                        match &*bin.lhs {
+                            Expression::Unary(u) => match u.op {
+                                UnaryOperator::Dereference => {
+                                    self.gen_expr(&*u.expr);
+                                }
+                                _ => {
+                                    panic!("Invalid node: {:?}.\nleft node is not var on assignment expression.", u);
+                                }
+                            },
+                            Expression::LocalVariable { .. } => {
+                                self.gen_lval(&*bin.lhs);
+                            }
+                            _ => {
+                                panic!("Invalid node: {:?}.\nleft node is not var on assignment expression.", bin.lhs);
+                            }
+                        }
+
                         println!("  # --right");
                         self.gen_expr(&*bin.rhs);
                         println!("  # --assignment");
