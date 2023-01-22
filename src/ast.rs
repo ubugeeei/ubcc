@@ -131,7 +131,11 @@ pub(crate) enum TypeEnum {
 
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) enum Expression {
-    LocalVariable { name: String, offset: i32 },
+    LocalVariable {
+        name: String,
+        offset: i32,
+        type_: Type,
+    },
     Integer(i32),
     Binary(BinaryExpression),
     Unary(UnaryExpression),
