@@ -1,10 +1,10 @@
-use crate::ast::{
+use ast::{
     BinaryOperator, Expression, ForStatement, FunctionDefinition, IfStatement, InitDeclaration,
     Program, Statement, Type, UnaryOperator, WhileStatement,
 };
 
 // entry
-pub(crate) fn gen(node: Program) {
+pub fn gen(node: Program) {
     let codegen = CodeGenerator::new(node);
     codegen.gen();
 }
@@ -19,6 +19,9 @@ impl CodeGenerator {
 }
 impl CodeGenerator {
     fn gen(&self) {
+        println!(".intel_syntax noprefix");
+        println!(".global main");
+        println!("");
         for stmt in self.ast.statements.iter() {
             self.gen_stmt(stmt);
         }

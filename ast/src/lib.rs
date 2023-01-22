@@ -1,15 +1,15 @@
 #[derive(Debug, PartialEq, Eq)]
-pub(crate) struct Program {
-    pub(crate) statements: Vec<Statement>,
+pub struct Program {
+    pub statements: Vec<Statement>,
 }
 impl Program {
-    pub(crate) fn new(statements: Vec<Statement>) -> Self {
+    pub fn new(statements: Vec<Statement>) -> Self {
         Self { statements }
     }
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub(crate) enum Statement {
+pub enum Statement {
     Expression(Expression),
     If(IfStatement),
     While(WhileStatement),
@@ -21,13 +21,13 @@ pub(crate) enum Statement {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub(crate) struct IfStatement {
-    pub(crate) condition: Expression,
-    pub(crate) consequence: Box<Statement>,
-    pub(crate) alternative: Option<Box<Statement>>,
+pub struct IfStatement {
+    pub condition: Expression,
+    pub consequence: Box<Statement>,
+    pub alternative: Option<Box<Statement>>,
 }
 impl IfStatement {
-    pub(crate) fn new(
+    pub fn new(
         condition: Expression,
         consequence: Statement,
         alternative: Option<Statement>,
@@ -41,12 +41,12 @@ impl IfStatement {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub(crate) struct WhileStatement {
-    pub(crate) condition: Expression,
-    pub(crate) body: Box<Statement>,
+pub struct WhileStatement {
+    pub condition: Expression,
+    pub body: Box<Statement>,
 }
 impl WhileStatement {
-    pub(crate) fn new(condition: Expression, body: Statement) -> Self {
+    pub fn new(condition: Expression, body: Statement) -> Self {
         Self {
             condition,
             body: Box::new(body),
@@ -55,14 +55,14 @@ impl WhileStatement {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub(crate) struct ForStatement {
-    pub(crate) init: Option<Box<Statement>>,
-    pub(crate) condition: Option<Expression>,
-    pub(crate) post: Option<Box<Statement>>,
-    pub(crate) body: Box<Statement>,
+pub struct ForStatement {
+    pub init: Option<Box<Statement>>,
+    pub condition: Option<Expression>,
+    pub post: Option<Box<Statement>>,
+    pub body: Box<Statement>,
 }
 impl ForStatement {
-    pub(crate) fn new(
+    pub fn new(
         init: Option<Statement>,
         condition: Option<Expression>,
         post: Option<Statement>,
@@ -78,13 +78,13 @@ impl ForStatement {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub(crate) struct FunctionDefinition {
-    pub(crate) name: String,
-    pub(crate) arguments: Vec<Expression>, // Expression::LocalVariable
-    pub(crate) body: Vec<Statement>,
+pub struct FunctionDefinition {
+    pub name: String,
+    pub arguments: Vec<Expression>, // Expression::LocalVariable
+    pub body: Vec<Statement>,
 }
 impl FunctionDefinition {
-    pub(crate) fn new(name: String, arguments: Vec<Expression>, body: Vec<Statement>) -> Self {
+    pub fn new(name: String, arguments: Vec<Expression>, body: Vec<Statement>) -> Self {
         Self {
             name,
             arguments,
@@ -94,14 +94,14 @@ impl FunctionDefinition {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub(crate) struct InitDeclaration {
-    pub(crate) name: String,
-    pub(crate) offset: usize,
-    pub(crate) type_: Type,
-    pub(crate) init: Option<Expression>,
+pub struct InitDeclaration {
+    pub name: String,
+    pub offset: usize,
+    pub type_: Type,
+    pub init: Option<Expression>,
 }
 impl InitDeclaration {
-    pub(crate) fn new(name: String, offset: usize, type_: Type, init: Option<Expression>) -> Self {
+    pub fn new(name: String, offset: usize, type_: Type, init: Option<Expression>) -> Self {
         Self {
             name,
             offset,
@@ -112,13 +112,13 @@ impl InitDeclaration {
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
-pub(crate) enum Type {
+pub enum Type {
     Primitive(TypeEnum),
     Array { type_: Box<Type>, size: i32 },
     Pointer(Box<Type>),
 }
 impl Type {
-    pub(crate) fn size(&self) -> usize {
+    pub fn size(&self) -> usize {
         match self {
             Type::Primitive(TypeEnum::Void) => 0,
             Type::Primitive(TypeEnum::Char) => 1,
@@ -134,7 +134,7 @@ impl Type {
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
-pub(crate) enum TypeEnum {
+pub enum TypeEnum {
     Void,
     Char,
     Short,
@@ -145,7 +145,7 @@ pub(crate) enum TypeEnum {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub(crate) enum Expression {
+pub enum Expression {
     LocalVariable {
         name: String,
         offset: usize,
@@ -158,13 +158,13 @@ pub(crate) enum Expression {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub(crate) struct BinaryExpression {
-    pub(crate) lhs: Box<Expression>,
-    pub(crate) op: BinaryOperator,
-    pub(crate) rhs: Box<Expression>,
+pub struct BinaryExpression {
+    pub lhs: Box<Expression>,
+    pub op: BinaryOperator,
+    pub rhs: Box<Expression>,
 }
 impl BinaryExpression {
-    pub(crate) fn new(lhs: Expression, op: BinaryOperator, rhs: Expression) -> Self {
+    pub fn new(lhs: Expression, op: BinaryOperator, rhs: Expression) -> Self {
         Self {
             lhs: Box::new(lhs),
             op,
@@ -187,13 +187,13 @@ pub enum BinaryOperator {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub(crate) struct UnaryExpression {
-    pub(crate) expr: Box<Expression>,
-    pub(crate) op: UnaryOperator,
+pub struct UnaryExpression {
+    pub expr: Box<Expression>,
+    pub op: UnaryOperator,
     // prefix: bool,
 }
 impl UnaryExpression {
-    pub(crate) fn new(expr: Expression, op: UnaryOperator) -> Self {
+    pub fn new(expr: Expression, op: UnaryOperator) -> Self {
         Self {
             expr: Box::new(expr),
             op,
@@ -212,12 +212,12 @@ pub enum UnaryOperator {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub(crate) struct CallExpression {
-    pub(crate) callee_name: String,
-    pub(crate) arguments: Vec<Expression>,
+pub struct CallExpression {
+    pub callee_name: String,
+    pub arguments: Vec<Expression>,
 }
 impl CallExpression {
-    pub(crate) fn new(callee_name: String, arguments: Vec<Expression>) -> Self {
+    pub fn new(callee_name: String, arguments: Vec<Expression>) -> Self {
         Self {
             callee_name,
             arguments,

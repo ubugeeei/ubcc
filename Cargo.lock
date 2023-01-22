@@ -3,10 +3,23 @@
 version = 3
 
 [[package]]
+name = "ast"
+version = "0.1.0"
+
+[[package]]
 name = "cfg-if"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
+
+[[package]]
+name = "compile"
+version = "0.1.0"
+dependencies = [
+ "ast",
+ "parse",
+ "rand",
+]
 
 [[package]]
 name = "getrandom"
@@ -20,10 +33,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "lex"
+version = "0.1.0"
+
+[[package]]
 name = "libc"
 version = "0.2.139"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "201de327520df007757c1f0adce6e827fe8562fbc28bfd9c15571c66ca1f5f79"
+
+[[package]]
+name = "parse"
+version = "0.1.0"
+dependencies = [
+ "ast",
+ "lex",
+]
 
 [[package]]
 name = "ppv-lite86"
@@ -59,13 +84,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
 dependencies = [
  "getrandom",
-]
-
-[[package]]
-name = "ubcc"
-version = "0.1.0"
-dependencies = [
- "rand",
 ]
 
 [[package]]

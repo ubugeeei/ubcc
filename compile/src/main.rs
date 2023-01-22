@@ -1,7 +1,4 @@
-mod ast;
-mod codegen;
-mod lex;
-mod parse;
+use compile::gen;
 
 fn main() {
     let argv = std::env::args().collect::<Vec<_>>();
@@ -18,8 +15,5 @@ fn main() {
         }
     };
 
-    println!(".intel_syntax noprefix");
-    println!(".global main");
-    println!("");
-    codegen::gen(ast);
+    gen(ast);
 }

@@ -1,14 +1,8 @@
-use crate::{
-    ast::{
-        BinaryExpression, BinaryOperator, CallExpression, Expression, ForStatement,
-        FunctionDefinition, IfStatement, InitDeclaration, Program, Statement, Type, TypeEnum,
-        UnaryExpression, UnaryOperator, WhileStatement,
-    },
-    lex::{Lexer, Token},
-};
+use ast::{Program, Type, Statement, IfStatement, WhileStatement, ForStatement, Expression, InitDeclaration, FunctionDefinition, UnaryExpression, UnaryOperator, BinaryOperator, BinaryExpression, CallExpression, TypeEnum};
+use lex::{tokens::Token, Lexer};
 
 // entry
-pub(crate) fn parse(input: String) -> Result<Program, String> {
+pub fn parse(input: String) -> Result<Program, String> {
     let lexer = Lexer::new(input);
     let mut parser = Parser::new(lexer);
     parser.parse()

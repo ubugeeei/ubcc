@@ -1,44 +1,8 @@
-#[derive(Debug, PartialEq, Clone)]
-pub(crate) enum Token {
-    Plus,
-    Minus,
-    Slash,
-    Asterisk,
-    LParen,
-    RParen,
-    LBrace,
-    RBrace,
-    RBracket,
-    LBracket,
-    Gt,
-    Lt,
-    GtEq,
-    LtEq,
-    Eq,
-    NotEq,
-    Not,
-    Ampersand,
-    Assignment,
-    Integer(i32),
-    Identifier(String),
-    Return,
-    If,
-    Else,
-    While,
-    For,
-    SemiColon,
-    Comma,
-    Void,
-    Char,
-    Short,
-    Int,
-    Long,
-    Float,
-    Double,
-    Eof,
-}
+use tokens::Token;
 
-pub(crate) struct Lexer {
+pub mod tokens;
+
+pub struct Lexer {
     input: String,
     position: usize,
     consume_position: usize,
@@ -46,7 +10,7 @@ pub(crate) struct Lexer {
 }
 
 impl Lexer {
-    pub(crate) fn new(input: String) -> Self {
+    pub fn new(input: String) -> Self {
         let mut lexer = Self {
             input,
             position: 0,
@@ -57,7 +21,7 @@ impl Lexer {
         lexer
     }
 
-    pub(crate) fn next(&mut self) -> Token {
+    pub fn next(&mut self) -> Token {
         self.skip_whitespace();
         match self.ch {
             '+' => {
