@@ -4,73 +4,80 @@ use ast::{
 };
 
 // entry
-pub fn gen(node: Program) {
-    let codegen = Compiler::new(node);
-    codegen.gen();
+pub fn compile(input: String) {
+    let compiler = Compiler::new(input);
+    compiler.compile();
 }
 
 struct Compiler {
     ast: Program,
 }
 impl Compiler {
-    fn new(ast: Program) -> Self {
+    fn new(input: String) -> Self {
+        let ast = match parse::parse(input) {
+            Ok(ast) => ast,
+            Err(e) => {
+                eprintln!("{}", e);
+                std::process::exit(1);
+            }
+        };
         Self { ast }
     }
 }
 impl Compiler {
-    fn gen(&self) {
+    fn compile(&self) {
         println!(".intel_syntax noprefix");
         println!(".global main");
         println!("");
         for stmt in self.ast.statements.iter() {
-            self.gen_stmt(stmt);
+            self.compile_stmt(stmt);
         }
     }
 
-    fn gen_stmt(&self, node: &Statement) {
+    fn compile_stmt(&self, node: &Statement) {
         match node {
-            Statement::If(if_stmt) => self.gen_if(if_stmt),
-            Statement::While(while_stmt) => self.gen_while(while_stmt),
-            Statement::For(for_stmt) => self.gen_for(for_stmt),
-            Statement::Block(stmts) => self.gen_stmts(stmts),
-            Statement::Expression(expr) => self.gen_expr(expr),
-            Statement::Return(expr) => self.gen_return(expr),
+            Statement::If(if_stmt) => self.compile_if(if_stmt),
+            Statement::While(while_stmt) => self.compile_while(while_stmt),
+            Statement::For(for_stmt) => self.compile_for(for_stmt),
+            Statement::Block(stmts) => self.compile_stmts(stmts),
+            Statement::Expression(expr) => self.compile_expr(expr),
+            Statement::Return(expr) => self.compile_return(expr),
             Statement::FunctionDefinition(function_def) => {
-                self.gen_function_definition(function_def)
+                self.compile_function_definition(function_def)
             }
-            Statement::InitDeclaration(init_decl) => self.gen_init_declaration(init_decl),
+            Statement::InitDeclaration(init_decl) => self.compile_init_declaration(init_decl),
         }
     }
 
-    fn gen_stmts(&self, stmts: &[Statement]) {
+    fn compile_stmts(&self, stmts: &[Statement]) {
         for stmt in stmts.iter() {
-            self.gen_stmt(stmt);
+            self.compile_stmt(stmt);
         }
     }
 
-    fn gen_if(&self, if_stmt: &IfStatement) {
+    fn compile_if(&self, if_stmt: &IfStatement) {
         println!("# -- start if");
         match if_stmt.alternative.as_ref() {
             Some(alternative) => {
                 let label_else = format!(".Lelse{}", rand::random::<u32>());
                 let label_end = format!(".Lend{}", rand::random::<u32>());
-                self.gen_expr(&if_stmt.condition);
+                self.compile_expr(&if_stmt.condition);
                 println!("  pop rax");
                 println!("  cmp rax, 0");
                 println!("  je {label_else}");
-                self.gen_stmt(&*if_stmt.consequence);
+                self.compile_stmt(&*if_stmt.consequence);
                 println!("  jmp {label_end}");
                 println!("{label_else}:");
-                self.gen_stmt(&*alternative);
+                self.compile_stmt(&*alternative);
                 println!("{label_end}:");
             }
             None => {
                 let label = format!(".Lend{}", rand::random::<u32>());
-                self.gen_expr(&if_stmt.condition);
+                self.compile_expr(&if_stmt.condition);
                 println!("  pop rax");
                 println!("  cmp rax, 0");
                 println!("  je {}", label);
-                self.gen_stmt(&*if_stmt.consequence);
+                self.compile_stmt(&*if_stmt.consequence);
                 println!("{label}:");
             }
         }
@@ -78,30 +85,30 @@ impl Compiler {
         println!("");
     }
 
-    fn gen_while(&self, while_stmt: &WhileStatement) {
+    fn compile_while(&self, while_stmt: &WhileStatement) {
         println!("# -- start while");
         let label_begin = format!(".Lbegin{}", rand::random::<u32>());
         let label_end = format!(".Lend{}", rand::random::<u32>());
         println!("{label_begin}:");
-        self.gen_expr(&while_stmt.condition);
+        self.compile_expr(&while_stmt.condition);
         println!("  pop rax");
         println!("  cmp rax, 0");
         println!("  je {label_end}");
-        self.gen_stmt(&*while_stmt.body);
+        self.compile_stmt(&*while_stmt.body);
         println!("  jmp {label_begin}");
         println!("{label_end}:");
         println!("# -- end while");
         println!("");
     }
 
-    fn gen_for(&self, for_stmt: &ForStatement) {
+    fn compile_for(&self, for_stmt: &ForStatement) {
         println!("# -- start for");
         let label_begin = format!(".Lbegin{}", rand::random::<u32>());
         let label_end = format!(".Lend{}", rand::random::<u32>());
 
         // init
         match for_stmt.init.as_ref() {
-            Some(init) => self.gen_stmt(init),
+            Some(init) => self.compile_stmt(init),
             None => {}
         }
         println!("{label_begin}:");
@@ -109,7 +116,7 @@ impl Compiler {
         // condition and jump
         match for_stmt.condition.as_ref() {
             Some(ref condition) => {
-                self.gen_expr(condition);
+                self.compile_expr(condition);
                 println!("  pop rax");
                 println!("  cmp rax, 0");
                 println!("  je {label_end}");
@@ -118,11 +125,11 @@ impl Compiler {
         }
 
         // body
-        self.gen_stmt(for_stmt.body.as_ref());
+        self.compile_stmt(for_stmt.body.as_ref());
 
         // update
         match for_stmt.post.as_ref() {
-            Some(update) => self.gen_stmt(update),
+            Some(update) => self.compile_stmt(update),
             None => {}
         }
 
@@ -132,9 +139,9 @@ impl Compiler {
         println!("");
     }
 
-    fn gen_return(&self, node: &Expression) {
+    fn compile_return(&self, node: &Expression) {
         println!("  # -- return");
-        self.gen_expr(node);
+        self.compile_expr(node);
         println!("  # epilogue");
         println!("  pop rax");
         println!("  mov rsp, rbp");
@@ -143,7 +150,7 @@ impl Compiler {
         println!("");
     }
 
-    fn gen_function_definition(&self, function_def: &FunctionDefinition) {
+    fn compile_function_definition(&self, function_def: &FunctionDefinition) {
         println!("# ====== function definition ======");
         println!("{}:", function_def.name);
         println!("  # prologue");
@@ -165,15 +172,15 @@ impl Compiler {
         println!("");
 
         println!("  # body");
-        self.gen_stmts(&function_def.body);
+        self.compile_stmts(&function_def.body);
         println!("");
     }
 
-    fn gen_init_declaration(&self, init_decl: &InitDeclaration) {
+    fn compile_init_declaration(&self, init_decl: &InitDeclaration) {
         println!("  # -- init declaration {}", init_decl.name);
-        self.gen_init_lval(init_decl.offset);
+        self.compile_init_lval(init_decl.offset);
         match init_decl.init {
-            Some(ref init) => self.gen_expr(init),
+            Some(ref init) => self.compile_expr(init),
             None => {
                 println!("  push rax");
             }
@@ -185,29 +192,29 @@ impl Compiler {
         println!("");
     }
 
-    fn gen_expr(&self, node: &Expression) {
+    fn compile_expr(&self, node: &Expression) {
         match node {
             Expression::Integer(int) => {
                 println!("  push {}", int);
             }
             Expression::Unary(unary) => match unary.op {
                 UnaryOperator::Minus => {
-                    self.gen_expr(&*unary.expr);
+                    self.compile_expr(&*unary.expr);
                     println!("  pop rax");
                     println!("  neg rax");
                 }
                 UnaryOperator::Reference => {
-                    self.gen_lval(&*unary.expr);
+                    self.compile_lval(&*unary.expr);
                 }
                 UnaryOperator::Dereference => {
-                    self.gen_expr(&*unary.expr);
+                    self.compile_expr(&*unary.expr);
                     println!("  pop rax");
                     println!("  mov rax, [rax]");
                     println!("  push rax");
                 }
             },
             Expression::LocalVariable { .. } => {
-                self.gen_lval(node);
+                self.compile_lval(node);
                 println!("  pop rax");
                 println!("  mov rax, [rax]");
                 println!("  push rax");
@@ -244,7 +251,7 @@ impl Compiler {
                     panic!("too many arguments");
                 }
                 for (i, arg) in call.arguments.iter().enumerate() {
-                    self.gen_expr(arg);
+                    self.compile_expr(arg);
                     println!("  pop {}", registers[i]);
                 }
                 println!("  mov rax, 0x0");
@@ -256,24 +263,24 @@ impl Compiler {
                     BinaryOperator::Plus => match &*bin.lhs {
                         Expression::LocalVariable { type_, .. } => match type_ {
                             Type::Pointer(_) => {
-                                self.gen_lval(&*bin.lhs);
-                                self.gen_expr(&*bin.rhs);
+                                self.compile_lval(&*bin.lhs);
+                                self.compile_expr(&*bin.rhs);
                                 println!("  pop rax");
                                 println!("  pop rdi");
                                 println!("  imul rax, {}", type_.size());
                                 println!("  add rax, rdi");
                             }
                             _ => {
-                                self.gen_expr(&*bin.lhs);
-                                self.gen_expr(&*bin.rhs);
+                                self.compile_expr(&*bin.lhs);
+                                self.compile_expr(&*bin.rhs);
                                 println!("  pop rdi");
                                 println!("  pop rax");
                                 println!("  add rax, rdi");
                             }
                         },
                         _ => {
-                            self.gen_expr(&*bin.lhs);
-                            self.gen_expr(&*bin.rhs);
+                            self.compile_expr(&*bin.lhs);
+                            self.compile_expr(&*bin.rhs);
                             println!("  pop rdi");
                             println!("  pop rax");
                             println!("  add rax, rdi");
@@ -282,8 +289,8 @@ impl Compiler {
                     BinaryOperator::Minus => match &*bin.lhs {
                         Expression::LocalVariable { type_, .. } => match type_ {
                             Type::Pointer(_) => {
-                                self.gen_lval(&*bin.lhs);
-                                self.gen_expr(&*bin.rhs);
+                                self.compile_lval(&*bin.lhs);
+                                self.compile_expr(&*bin.rhs);
                                 println!("  pop rax");
                                 println!("  pop rdi");
                                 println!("  imul rax, {}", type_.size());
@@ -291,39 +298,39 @@ impl Compiler {
                                 println!("  mov rax, rdi");
                             }
                             _ => {
-                                self.gen_expr(&*bin.lhs);
-                                self.gen_expr(&*bin.rhs);
+                                self.compile_expr(&*bin.lhs);
+                                self.compile_expr(&*bin.rhs);
                                 println!("  pop rdi");
                                 println!("  pop rax");
                                 println!("  sub rax, rdi");
                             }
                         },
                         _ => {
-                            self.gen_expr(&*bin.lhs);
-                            self.gen_expr(&*bin.rhs);
+                            self.compile_expr(&*bin.lhs);
+                            self.compile_expr(&*bin.rhs);
                             println!("  pop rdi");
                             println!("  pop rax");
                             println!("  sub rax, rdi");
                         }
                     },
                     BinaryOperator::Asterisk => {
-                        self.gen_expr(&*bin.lhs);
-                        self.gen_expr(&*bin.rhs);
+                        self.compile_expr(&*bin.lhs);
+                        self.compile_expr(&*bin.rhs);
                         println!("  pop rdi");
                         println!("  pop rax");
                         println!("  imul rax, rdi");
                     }
                     BinaryOperator::Slash => {
-                        self.gen_expr(&*bin.lhs);
-                        self.gen_expr(&*bin.rhs);
+                        self.compile_expr(&*bin.lhs);
+                        self.compile_expr(&*bin.rhs);
                         println!("  pop rdi");
                         println!("  pop rax");
                         println!("  cqo");
                         println!("  idiv rdi");
                     }
                     BinaryOperator::Lt => {
-                        self.gen_expr(&*bin.lhs);
-                        self.gen_expr(&*bin.rhs);
+                        self.compile_expr(&*bin.lhs);
+                        self.compile_expr(&*bin.rhs);
                         println!("  pop rdi");
                         println!("  pop rax");
                         println!("  cmp rax, rdi");
@@ -331,8 +338,8 @@ impl Compiler {
                         println!("  movzb rax, al");
                     }
                     BinaryOperator::LtEq => {
-                        self.gen_expr(&*bin.lhs);
-                        self.gen_expr(&*bin.rhs);
+                        self.compile_expr(&*bin.lhs);
+                        self.compile_expr(&*bin.rhs);
                         println!("  pop rdi");
                         println!("  pop rax");
                         println!("  cmp rax, rdi");
@@ -340,8 +347,8 @@ impl Compiler {
                         println!("  movzb rax, al");
                     }
                     BinaryOperator::Eq => {
-                        self.gen_expr(&*bin.lhs);
-                        self.gen_expr(&*bin.rhs);
+                        self.compile_expr(&*bin.lhs);
+                        self.compile_expr(&*bin.rhs);
                         println!("  pop rdi");
                         println!("  pop rax");
                         println!("  cmp rax, rdi");
@@ -349,8 +356,8 @@ impl Compiler {
                         println!("  movzb rax, al");
                     }
                     BinaryOperator::NotEq => {
-                        self.gen_expr(&*bin.lhs);
-                        self.gen_expr(&*bin.rhs);
+                        self.compile_expr(&*bin.lhs);
+                        self.compile_expr(&*bin.rhs);
                         println!("  pop rdi");
                         println!("  pop rax");
                         println!("  cmp rax, rdi");
@@ -364,14 +371,14 @@ impl Compiler {
                         match &*bin.lhs {
                             Expression::Unary(u) => match u.op {
                                 UnaryOperator::Dereference => {
-                                    self.gen_expr(&*u.expr);
+                                    self.compile_expr(&*u.expr);
                                 }
                                 _ => {
                                     panic!("Invalid node: {:?}.\nleft node is not var on assignment expression.", u);
                                 }
                             },
                             Expression::LocalVariable { .. } => {
-                                self.gen_lval(&*bin.lhs);
+                                self.compile_lval(&*bin.lhs);
                             }
                             _ => {
                                 panic!("Invalid node: {:?}.\nleft node is not var on assignment expression.", bin.lhs);
@@ -379,7 +386,7 @@ impl Compiler {
                         }
 
                         println!("  # --right");
-                        self.gen_expr(&*bin.rhs);
+                        self.compile_expr(&*bin.rhs);
                         println!("  # --assignment");
                         println!("  pop rdi");
                         println!("  pop rax");
@@ -394,7 +401,7 @@ impl Compiler {
         }
     }
 
-    fn gen_lval(&self, node: &Expression) {
+    fn compile_lval(&self, node: &Expression) {
         match node {
             Expression::LocalVariable { offset, .. } => {
                 println!("  mov rax, rbp");
@@ -411,7 +418,7 @@ impl Compiler {
         }
     }
 
-    fn gen_init_lval(&self, offset: usize) {
+    fn compile_init_lval(&self, offset: usize) {
         println!("  mov rax, rbp");
         println!("  sub rax, {offset}");
         println!("  push rax");
