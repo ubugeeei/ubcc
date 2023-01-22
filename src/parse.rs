@@ -498,9 +498,9 @@ impl Parser {
         };
         self.next_token();
 
-        let mut t = base;
+        let mut p_count = 0;
         while self.current_token == Token::Asterisk {
-            t = Type::Pointer(Box::new(t));
+            p_count += 1;
             self.next_token();
         }
 
@@ -513,6 +513,27 @@ impl Parser {
                 ))
             }
         };
+
+        let mut t = base;
+        // parse array
+        while self.peeked_token == Token::LBracket {
+            self.next_token(); // skip '['
+
+            let Token::Integer(size) = self.peeked_token else {
+                return Err(format!("Expected integer, but got {:?}", self.peeked_token));
+            };
+            self.next_token();
+
+            self.next_token(); // skip ']'
+
+            t = Type::Array {
+                type_: Box::new(t),
+                size,
+            };
+        }
+        for _ in 0..p_count {
+            t = Type::Pointer(Box::new(t));
+        }
 
         Ok((t, name))
     }
@@ -1132,6 +1153,57 @@ mod test {
             let lexer = Lexer::new(input);
             let mut parser = Parser::new(lexer);
             assert_eq!(parser.parse_statement().unwrap(), expected);
+        }
+    }
+
+    #[test]
+    fn test_parse_array() {
+        let cases = vec![
+            (
+                String::from("int a[10];"),
+                vec![Statement::InitDeclaration(InitDeclaration::new(
+                    String::from("a"),
+                    80,
+                    Type::Array {
+                        type_: Box::new(Type::Primitive(TypeEnum::Int)),
+                        size: 10,
+                    },
+                    None,
+                ))],
+            ),
+            (
+                String::from("int a[5][10];"),
+                vec![Statement::InitDeclaration(InitDeclaration::new(
+                    String::from("a"),
+                    80,
+                    Type::Array {
+                        type_: Box::new(Type::Array {
+                            type_: Box::new(Type::Primitive(TypeEnum::Int)),
+                            size: 5,
+                        }),
+                        size: 10,
+                    },
+                    None,
+                ))],
+            ),
+            (
+                String::from("int *a[10];"),
+                vec![Statement::InitDeclaration(InitDeclaration::new(
+                    String::from("a"),
+                    8,
+                    Type::Pointer(Box::new(Type::Array {
+                        type_: Box::new(Type::Primitive(TypeEnum::Int)),
+                        size: 10,
+                    })),
+                    None,
+                ))],
+            ),
+        ];
+
+        for (input, expected) in cases {
+            let lexer = Lexer::new(input);
+            let mut parser = Parser::new(lexer);
+            assert_eq!(parser.parse().unwrap().statements, expected);
         }
     }
 
