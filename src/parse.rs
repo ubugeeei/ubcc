@@ -16,7 +16,7 @@ pub(crate) fn parse(input: String) -> Result<Program, String> {
 
 struct LVar {
     name: String,
-    offset: i32,
+    offset: usize,
     type_: Type,
 }
 
@@ -471,7 +471,8 @@ impl Parser {
     }
 
     fn new_local_var(&mut self, type_: Type, name: String) -> Result<Expression, String> {
-        let offset = self.locals.last().map(|l| l.offset).unwrap_or(0) + 8;
+        let alloca = self.sizeof(&type_);
+        let offset = self.locals.last().map(|l| l.offset).unwrap_or(0) + alloca;
         let v = LVar {
             name: name.clone(),
             offset,
@@ -512,7 +513,7 @@ impl Parser {
             Type::Primitive(TypeEnum::Void) => 0,
             Type::Primitive(TypeEnum::Char) => 1,
             Type::Primitive(TypeEnum::Short) => 2,
-            Type::Primitive(TypeEnum::Int) => 4,
+            Type::Primitive(TypeEnum::Int) => 8, // FIXME: clash with 4 now.
             Type::Primitive(TypeEnum::Long) => 8,
             Type::Primitive(TypeEnum::Float) => 4,
             Type::Primitive(TypeEnum::Double) => 8,
@@ -802,7 +803,7 @@ mod test {
                 vec![
                     Statement::InitDeclaration(InitDeclaration::new(
                         String::from("a"),
-                        8,
+                        4,
                         Type::Primitive(TypeEnum::Int),
                         Some(Expression::Integer(0)),
                     )),
@@ -810,7 +811,7 @@ mod test {
                         Expression::Binary(BinaryExpression::new(
                             Expression::LocalVariable {
                                 name: String::from("a"),
-                                offset: 8,
+                                offset: 4,
                                 type_: Type::Primitive(TypeEnum::Int),
                             },
                             BinaryOperator::Eq,
@@ -826,7 +827,7 @@ mod test {
                 vec![
                     Statement::InitDeclaration(InitDeclaration::new(
                         String::from("a"),
-                        8,
+                        4,
                         Type::Primitive(TypeEnum::Int),
                         Some(Expression::Integer(0)),
                     )),
@@ -834,7 +835,7 @@ mod test {
                         Expression::Binary(BinaryExpression::new(
                             Expression::LocalVariable {
                                 name: String::from("a"),
-                                offset: 8,
+                                offset: 4,
                                 type_: Type::Primitive(TypeEnum::Int),
                             },
                             BinaryOperator::Eq,
@@ -861,7 +862,7 @@ mod test {
             vec![
                 Statement::InitDeclaration(InitDeclaration::new(
                     String::from("a"),
-                    8,
+                    4,
                     Type::Primitive(TypeEnum::Int),
                     Some(Expression::Integer(0)),
                 )),
@@ -869,7 +870,7 @@ mod test {
                     Expression::Binary(BinaryExpression::new(
                         Expression::LocalVariable {
                             name: String::from("a"),
-                            offset: 8,
+                            offset: 4,
                             type_: Type::Primitive(TypeEnum::Int),
                         },
                         BinaryOperator::Eq,
@@ -894,7 +895,7 @@ mod test {
             vec![
                 Statement::InitDeclaration(InitDeclaration::new(
                     String::from("i"),
-                    8,
+                    4,
                     Type::Primitive(TypeEnum::Int),
                     Some(Expression::Integer(0)),
                 )),
@@ -903,7 +904,7 @@ mod test {
                         BinaryExpression::new(
                             Expression::LocalVariable {
                                 name: String::from("i"),
-                                offset: 8,
+                                offset: 4,
                                 type_: Type::Primitive(TypeEnum::Int),
                             },
                             BinaryOperator::Assignment,
@@ -913,7 +914,7 @@ mod test {
                     Some(Expression::Binary(BinaryExpression::new(
                         Expression::LocalVariable {
                             name: String::from("i"),
-                            offset: 8,
+                            offset: 4,
                             type_: Type::Primitive(TypeEnum::Int),
                         },
                         BinaryOperator::Lt,
@@ -923,14 +924,14 @@ mod test {
                         BinaryExpression::new(
                             Expression::LocalVariable {
                                 name: String::from("i"),
-                                offset: 8,
+                                offset: 4,
                                 type_: Type::Primitive(TypeEnum::Int),
                             },
                             BinaryOperator::Assignment,
                             Expression::Binary(BinaryExpression::new(
                                 Expression::LocalVariable {
                                     name: String::from("i"),
-                                    offset: 8,
+                                    offset: 4,
                                     type_: Type::Primitive(TypeEnum::Int),
                                 },
                                 BinaryOperator::Plus,
@@ -963,21 +964,21 @@ mod test {
                 Statement::Block(vec![
                     Statement::InitDeclaration(InitDeclaration::new(
                         String::from("i"),
-                        8,
+                        4,
                         Type::Primitive(TypeEnum::Int),
                         Some(Expression::Integer(0)),
                     )),
                     Statement::Expression(Expression::Binary(BinaryExpression::new(
                         Expression::LocalVariable {
                             name: String::from("i"),
-                            offset: 8,
+                            offset: 4,
                             type_: Type::Primitive(TypeEnum::Int),
                         },
                         BinaryOperator::Assignment,
                         Expression::Binary(BinaryExpression::new(
                             Expression::LocalVariable {
                                 name: String::from("i"),
-                                offset: 8,
+                                offset: 4,
                                 type_: Type::Primitive(TypeEnum::Int),
                             },
                             BinaryOperator::Plus,
@@ -1029,7 +1030,7 @@ mod test {
                 String::from("int a = 0;"),
                 Statement::InitDeclaration(InitDeclaration::new(
                     String::from("a"),
-                    8,
+                    4,
                     Type::Primitive(TypeEnum::Int),
                     Some(Expression::Integer(0)),
                 )),
@@ -1038,7 +1039,7 @@ mod test {
                 String::from("int i;"),
                 Statement::InitDeclaration(InitDeclaration::new(
                     String::from("i"),
-                    8,
+                    4,
                     Type::Primitive(TypeEnum::Int),
                     None,
                 )),
@@ -1090,12 +1091,12 @@ mod test {
                     vec![
                         Expression::LocalVariable {
                             name: String::from("a"),
-                            offset: 8,
+                            offset: 4,
                             type_: Type::Primitive(TypeEnum::Int),
                         },
                         Expression::LocalVariable {
                             name: String::from("b"),
-                            offset: 16,
+                            offset: 8,
                             type_: Type::Primitive(TypeEnum::Int),
                         },
                     ],
@@ -1154,12 +1155,12 @@ mod test {
                         String::from("foo"),
                         vec![Expression::LocalVariable {
                             name: String::from("i"),
-                            offset: 8,
+                            offset: 4,
                             type_: Type::Primitive(TypeEnum::Int),
                         }],
                         vec![Statement::Return(Expression::LocalVariable {
                             name: String::from("i"),
-                            offset: 8,
+                            offset: 4,
                             type_: Type::Primitive(TypeEnum::Int),
                         })],
                     )),
@@ -1169,7 +1170,7 @@ mod test {
                         vec![
                             Statement::InitDeclaration(InitDeclaration::new(
                                 String::from("a"),
-                                16,
+                                8,
                                 Type::Primitive(TypeEnum::Int),
                                 Some(Expression::Call(CallExpression::new(
                                     String::from("foo"),

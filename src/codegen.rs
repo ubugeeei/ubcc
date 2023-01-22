@@ -317,7 +317,7 @@ impl CodeGenerator {
         }
     }
 
-    fn gen_init_lval(&self, offset: i32) {
+    fn gen_init_lval(&self, offset: usize) {
         println!("  mov rax, rbp");
         println!("  sub rax, {offset}");
         println!("  push rax");

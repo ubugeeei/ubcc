@@ -96,12 +96,12 @@ impl FunctionDefinition {
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) struct InitDeclaration {
     pub(crate) name: String,
-    pub(crate) offset: i32,
+    pub(crate) offset: usize,
     pub(crate) type_: Type,
     pub(crate) init: Option<Expression>,
 }
 impl InitDeclaration {
-    pub(crate) fn new(name: String, offset: i32, type_: Type, init: Option<Expression>) -> Self {
+    pub(crate) fn new(name: String, offset: usize, type_: Type, init: Option<Expression>) -> Self {
         Self {
             name,
             offset,
@@ -133,7 +133,7 @@ pub(crate) enum TypeEnum {
 pub(crate) enum Expression {
     LocalVariable {
         name: String,
-        offset: i32,
+        offset: usize,
         type_: Type,
     },
     Integer(i32),
