@@ -236,3 +236,11 @@ assert 10 "\
     return 10;
   }
 "
+
+assert 12 "\
+  int main() {
+    int a = 10;
+    a = a + 2;
+    return a;
+  }
+"

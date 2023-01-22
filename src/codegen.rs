@@ -1,6 +1,6 @@
 use crate::ast::{
-    BinaryOperator, Expression, ForStatement, FunctionDefinition, IfStatement, Program, Statement,
-    WhileStatement,
+    BinaryOperator, Expression, ForStatement, FunctionDefinition, IfStatement, InitDeclaration,
+    Program, Statement, WhileStatement,
 };
 
 // entry
@@ -35,6 +35,7 @@ impl CodeGenerator {
             Statement::FunctionDefinition(function_def) => {
                 self.gen_function_definition(function_def)
             }
+            Statement::InitDeclaration(init_decl) => self.gen_init_declaration(init_decl),
             _ => todo!(),
         }
     }
@@ -166,6 +167,22 @@ impl CodeGenerator {
         println!("");
     }
 
+    fn gen_init_declaration(&self, init_decl: &InitDeclaration) {
+        println!("  # -- init declaration");
+        self.gen_init_lval(init_decl.offset);
+        match init_decl.init {
+            Some(ref init) => self.gen_expr(init),
+            None => {
+                println!("  push rax");
+            }
+        }
+        println!("  pop rdi");
+        println!("  pop rax");
+        println!("  mov [rax], rdi");
+        println!("  push rdi");
+        println!("");
+    }
+
     fn gen_expr(&self, node: &Expression) {
         match node {
             Expression::Integer(int) => {
@@ -259,8 +276,11 @@ impl CodeGenerator {
                     }
                     BinaryOperator::Assignment => {
                         println!("  # --start assignment");
+                        println!("  # --left");
                         self.gen_lval(&*bin.lhs);
+                        println!("  # --right");
                         self.gen_expr(&*bin.rhs);
+                        println!("  # --assignment");
                         println!("  pop rdi");
                         println!("  pop rax");
                         println!("  mov [rax], rdi");
@@ -283,7 +303,6 @@ impl CodeGenerator {
     fn gen_lval(&self, node: &Expression) {
         match node {
             Expression::LocalVariable { offset, .. } => {
-                println!("  # load local variable");
                 println!("  mov rax, rbp");
                 println!("  sub rax, {offset}");
                 println!("  push rax");
@@ -296,5 +315,12 @@ impl CodeGenerator {
                 );
             }
         }
+    }
+
+    fn gen_init_lval(&self, offset: i32) {
+        println!("  mov rax, rbp");
+        println!("  sub rax, {offset}");
+        println!("  push rax");
+        println!("");
     }
 }

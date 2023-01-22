@@ -269,10 +269,7 @@ impl Parser {
         };
 
         let init_expr = match self.current_token {
-            Token::SemiColon => {
-                self.next_token(); // skip ';'
-                None
-            }
+            Token::SemiColon => None,
             Token::Assignment => {
                 self.next_token();
                 Some(self.parse_expression(Precedence::Lowest)?)
@@ -284,6 +281,7 @@ impl Parser {
                 ))
             }
         };
+        self.next_token(); // skip ';'
 
         Ok(Statement::InitDeclaration(InitDeclaration::new(
             name,

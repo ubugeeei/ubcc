@@ -95,10 +95,10 @@ impl FunctionDefinition {
 
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) struct InitDeclaration {
-    name: String,
-    offset: i32,
-    type_: Type,
-    init: Option<Expression>,
+    pub(crate) name: String,
+    pub(crate) offset: i32,
+    pub(crate) type_: Type,
+    pub(crate) init: Option<Expression>,
 }
 impl InitDeclaration {
     pub(crate) fn new(name: String, offset: i32, type_: Type, init: Option<Expression>) -> Self {
