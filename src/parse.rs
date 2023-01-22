@@ -510,8 +510,7 @@ impl Parser {
             Type::Primitive(TypeEnum::Float) => 4,
             Type::Primitive(TypeEnum::Double) => 8,
             Type::Pointer(_) => 8,
-            // TODO: array
-            Type::Array { .. } => todo!(),
+            Type::Array { size, .. } => (size * 8) as usize,
         }
     }
 
