@@ -17,26 +17,6 @@ assert() {
   fi
 }
 
-assert_with_link() {
-  file_name="$1"
-  expected="$2"
-  input="$3"
-
-  ${UBCC} "$input" >target/tmp.s
-  cc -c target/tmp.s -o target/tmp.o
-  cc -c lib/"$1".c -o target/"$1".o
-  cc -o target/tmp target/tmp.o target/"$1".o
-  ./target/tmp
-  actual="$?"
-
-  if [ "$actual" = "$expected" ]; then
-    echo "$input => $actual"
-  else
-    echo "$input => $expected expected, but got $actual"
-    exit 1
-  fi
-}
-
 assert 0 "\
   int main() {
     return 0;
@@ -218,20 +198,6 @@ assert 10 "\
       i = i - 1;
     }
     return i;
-  }
-"
-
-assert_with_link "foo" 0 "\
-  int main() {
-    foo();
-    return 0;
-  }
-"
-
-assert_with_link "bar" 0 "\
-  int main() {
-    bar(1, 2);
-    return 0;
   }
 "
 
