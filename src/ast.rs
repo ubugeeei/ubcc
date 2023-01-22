@@ -189,6 +189,8 @@ impl UnaryExpression {
 #[derive(Debug, PartialEq, Eq)]
 pub enum UnaryOperator {
     Minus,
+    Dereference,
+    Reference,
     // Bang,
     // Increment,
     // Decrement,

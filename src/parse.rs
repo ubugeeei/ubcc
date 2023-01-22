@@ -348,7 +348,7 @@ impl Parser {
         let mut expr = match self.current_token.clone() {
             Token::Integer(n) => Expression::Integer(n),
             Token::LParen => self.parse_grouped_expression()?,
-            Token::Minus => self.parse_unary_expression()?,
+            Token::Minus | Token::Asterisk | Token::Ampersand => self.parse_unary_expression()?,
             Token::Identifier(name) => match self.peeked_token {
                 Token::LParen => {
                     self.next_token(); // skip identifier
@@ -390,6 +390,22 @@ impl Parser {
                 Ok(Expression::Unary(UnaryExpression::new(
                     expr,
                     UnaryOperator::Minus,
+                )))
+            }
+            Token::Asterisk => {
+                self.next_token();
+                let expr = self.parse_expression(Precedence::Product)?;
+                Ok(Expression::Unary(UnaryExpression::new(
+                    expr,
+                    UnaryOperator::Dereference,
+                )))
+            }
+            Token::Ampersand => {
+                self.next_token();
+                let expr = self.parse_expression(Precedence::Product)?;
+                Ok(Expression::Unary(UnaryExpression::new(
+                    expr,
+                    UnaryOperator::Reference,
                 )))
             }
             _ => unreachable!(),
@@ -561,6 +577,35 @@ mod test {
                 Expression::Unary(UnaryExpression::new(
                     Expression::Integer(10),
                     UnaryOperator::Minus,
+                )),
+            ),
+        ];
+
+        for (input, expected) in cases {
+            let lexer = Lexer::new(input);
+            let mut parser = Parser::new(lexer);
+            assert_eq!(
+                parser.parse_expression(Precedence::Lowest).unwrap(),
+                expected
+            );
+        }
+    }
+
+    #[test]
+    fn test_parse_unary_expression() {
+        let cases = vec![
+            (
+                String::from("&5"),
+                Expression::Unary(UnaryExpression::new(
+                    Expression::Integer(5),
+                    UnaryOperator::Reference,
+                )),
+            ),
+            (
+                String::from("*5"),
+                Expression::Unary(UnaryExpression::new(
+                    Expression::Integer(5),
+                    UnaryOperator::Dereference,
                 )),
             ),
         ];

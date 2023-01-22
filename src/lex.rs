@@ -15,6 +15,7 @@ pub(crate) enum Token {
     Eq,
     NotEq,
     Not,
+    Ampersand,
     Assignment,
     Integer(i32),
     Identifier(String),
@@ -133,6 +134,10 @@ impl Lexer {
                     Token::Gt
                 }
             }
+            '&' => {
+                self.consume_char();
+                Token::Ampersand
+            }
             ';' => {
                 self.consume_char();
                 Token::SemiColon
@@ -235,7 +240,7 @@ mod test {
     fn test_next_token() {
         {
             let input = String::from(
-                "1 + - / * ( ) { } = ! == != < > <= >= ; , a b foo bar return if else while for void char short int long float double",
+                "1 + - / * ( ) { } = ! == != < > <= >= & ; , a b foo bar return if else while for void char short int long float double",
             );
             let mut lexer = Lexer::new(input);
             assert_eq!(lexer.next(), Token::Integer(1));
@@ -255,6 +260,7 @@ mod test {
             assert_eq!(lexer.next(), Token::Gt);
             assert_eq!(lexer.next(), Token::LtEq);
             assert_eq!(lexer.next(), Token::GtEq);
+            assert_eq!(lexer.next(), Token::Ampersand);
             assert_eq!(lexer.next(), Token::SemiColon);
             assert_eq!(lexer.next(), Token::Comma);
             assert_eq!(lexer.next(), Token::Identifier(String::from("a")));
