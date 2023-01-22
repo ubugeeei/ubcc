@@ -21,12 +21,5 @@ fn main() {
     println!(".intel_syntax noprefix");
     println!(".global main");
     println!("");
-
-    // println!("main:");
-    // println!("  # prologue");
-    // println!("  push rbp");
-    // println!("  mov rbp, rsp");
-    // println!("");
-    
     codegen::gen(ast);
 }
