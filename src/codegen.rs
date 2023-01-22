@@ -1,6 +1,6 @@
 use crate::ast::{
     BinaryOperator, Expression, ForStatement, FunctionDefinition, IfStatement, InitDeclaration,
-    Program, Statement, WhileStatement,
+    Program, Statement, UnaryOperator, WhileStatement,
 };
 
 // entry
@@ -168,7 +168,7 @@ impl CodeGenerator {
     }
 
     fn gen_init_declaration(&self, init_decl: &InitDeclaration) {
-        println!("  # -- init declaration");
+        println!("  # -- init declaration {}", init_decl.name);
         self.gen_init_lval(init_decl.offset);
         match init_decl.init {
             Some(ref init) => self.gen_expr(init),
@@ -188,6 +188,22 @@ impl CodeGenerator {
             Expression::Integer(int) => {
                 println!("  push {}", int);
             }
+            Expression::Unary(unary) => match unary.op {
+                UnaryOperator::Minus => {
+                    self.gen_expr(&*unary.expr);
+                    println!("  pop rax");
+                    println!("  neg rax");
+                }
+                UnaryOperator::Reference => {
+                    self.gen_lval(&*unary.expr);
+                }
+                UnaryOperator::Dereference => {
+                    self.gen_expr(&*unary.expr);
+                    println!("  pop rax");
+                    println!("  mov rax, [rax]");
+                    println!("  push rax");
+                }
+            },
             Expression::LocalVariable { .. } => {
                 self.gen_lval(node);
                 println!("  pop rax");

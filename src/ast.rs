@@ -173,8 +173,8 @@ pub enum BinaryOperator {
 
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) struct UnaryExpression {
-    expr: Box<Expression>,
-    op: UnaryOperator,
+    pub(crate) expr: Box<Expression>,
+    pub(crate) op: UnaryOperator,
     // prefix: bool,
 }
 impl UnaryExpression {
