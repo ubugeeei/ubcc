@@ -356,6 +356,7 @@ impl Parser {
                 }
                 _ => self.parse_identifier_expression(name)?,
             },
+
             _ => return Err(format!("Invalid token: {:?}", self.current_token)),
         };
 
@@ -1223,6 +1224,78 @@ mod test {
                                 ))),
                             )),
                             Statement::Return(Expression::Integer(10)),
+                        ],
+                    )),
+                ]),
+            ),
+            (
+                String::from(
+                    r#"
+                        int one(int *x) {
+                            *x = 1;
+                            return 0;
+                        }
+                        int main() {
+                            int x = 0;
+                            one(&x);
+                            return x;
+                        }
+                    "#,
+                ),
+                Program::new(vec![
+                    Statement::FunctionDefinition(FunctionDefinition::new(
+                        String::from("one"),
+                        vec![Expression::LocalVariable {
+                            name: String::from("x"),
+                            offset: 8,
+                            type_: Type::Pointer(Box::new(Type::Primitive(TypeEnum::Int))),
+                        }],
+                        vec![
+                            Statement::Expression(Expression::Binary(BinaryExpression::new(
+                                Expression::Unary(UnaryExpression::new(
+                                    Expression::LocalVariable {
+                                        name: String::from("x"),
+                                        offset: 8,
+                                        type_: Type::Pointer(Box::new(Type::Primitive(
+                                            TypeEnum::Int,
+                                        ))),
+                                    },
+                                    UnaryOperator::Dereference,
+                                )),
+                                BinaryOperator::Assignment,
+                                Expression::Integer(1),
+                            ))),
+                            Statement::Return(Expression::Integer(0)),
+                        ],
+                    )),
+                    Statement::FunctionDefinition(FunctionDefinition::new(
+                        String::from("main"),
+                        vec![],
+                        vec![
+                            Statement::InitDeclaration(InitDeclaration::new(
+                                String::from("x"),
+                                16,
+                                Type::Primitive(TypeEnum::Int),
+                                Some(Expression::Integer(0)),
+                            )),
+                            Statement::Expression(Expression::Call(CallExpression::new(
+                                String::from("one"),
+                                vec![Expression::Unary(UnaryExpression::new(
+                                    Expression::LocalVariable {
+                                        name: String::from("x"),
+                                        offset: 8,
+                                        type_: Type::Pointer(Box::new(Type::Primitive(
+                                            TypeEnum::Int,
+                                        ))),
+                                    },
+                                    UnaryOperator::Reference,
+                                ))],
+                            ))),
+                            Statement::Return(Expression::LocalVariable {
+                                name: String::from("x"),
+                                offset: 8,
+                                type_: Type::Pointer(Box::new(Type::Primitive(TypeEnum::Int))),
+                            }),
                         ],
                     )),
                 ]),
