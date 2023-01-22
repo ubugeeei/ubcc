@@ -8,6 +8,8 @@ pub(crate) enum Token {
     RParen,
     LBrace,
     RBrace,
+    RBracket,
+    LBracket,
     Gt,
     Lt,
     GtEq,
@@ -89,6 +91,14 @@ impl Lexer {
             '}' => {
                 self.consume_char();
                 Token::RBrace
+            }
+            '[' => {
+                self.consume_char();
+                Token::LBracket
+            }
+            ']' => {
+                self.consume_char();
+                Token::RBracket
             }
             '\0' => {
                 self.consume_char();
