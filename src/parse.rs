@@ -72,24 +72,15 @@ impl Parser {
             | Token::Long
             | Token::Float
             | Token::Double => {
-                let ty = self.parse_type()?;
+                let (ty, name) = self.parse_type_declaration()?;
+                self.next_token();
                 match self.current_token.clone() {
-                    Token::Identifier(name) => match self.peeked_token {
-                        Token::Assignment | Token::SemiColon => {
-                            self.next_token();
-                            self.parse_variable_declaration(ty, name)
-                        }
-                        Token::LParen => {
-                            self.next_token();
-                            self.parse_function_declaration(name)
-                        }
-                        _ => Err(format!(
-                            "expected token '=' or '(' but got {:?}",
-                            self.current_token
-                        )),
-                    },
+                    Token::Assignment | Token::SemiColon => {
+                        self.parse_variable_declaration(ty, name)
+                    }
+                    Token::LParen => self.parse_function_declaration(name),
                     _ => Err(format!(
-                        "expected identifier but got {:?}",
+                        "expected token '=' or '(' but got {:?}",
                         self.current_token
                     )),
                 }
@@ -287,17 +278,8 @@ impl Parser {
         let mut params = Vec::new();
         while self.peeked_token != Token::RParen {
             self.next_token();
-            let type_ = self.parse_type()?;
+            let (type_, name) = self.parse_type_declaration()?;
 
-            let name = match self.current_token.clone() {
-                Token::Identifier(name) => name,
-                _ => {
-                    return Err(format!(
-                        "expected identifier but got {:?}",
-                        self.peeked_token
-                    ))
-                }
-            };
             if self.peeked_token == Token::Comma {
                 self.next_token();
             }
@@ -503,7 +485,7 @@ impl Parser {
         })
     }
 
-    fn parse_type(&mut self) -> Result<Type, String> {
+    fn parse_type_declaration(&mut self) -> Result<(Type, String), String> {
         let base = match self.current_token {
             Token::Void => Type::Primitive(TypeEnum::Void),
             Token::Char => Type::Primitive(TypeEnum::Char),
@@ -517,12 +499,22 @@ impl Parser {
         self.next_token();
 
         let mut t = base;
-        // TODO: array
         while self.current_token == Token::Asterisk {
             t = Type::Pointer(Box::new(t));
             self.next_token();
         }
-        Ok(t)
+
+        let name = match self.current_token.clone() {
+            Token::Identifier(name) => name,
+            _ => {
+                return Err(format!(
+                    "Expected identifier, but got {:?}",
+                    self.current_token
+                ))
+            }
+        };
+
+        Ok((t, name))
     }
 
     fn peek_precedence(&self) -> Precedence {
