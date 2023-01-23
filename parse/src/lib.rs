@@ -37,6 +37,7 @@ struct Parser {
     locals: Vec<LVar>,
 }
 
+/// parser base
 impl Parser {
     fn new(mut lexer: Lexer) -> Self {
         let current_token = lexer.next();
@@ -49,6 +50,28 @@ impl Parser {
         }
     }
 
+    fn peek_precedence(&self) -> Precedence {
+        self.get_precedence(self.peeked_token.clone())
+    }
+
+    fn get_precedence(&self, token: Token) -> Precedence {
+        match token {
+            Token::Assignment => Precedence::Assignment,
+            Token::Eq | Token::NotEq => Precedence::Equals,
+            Token::Lt | Token::LtEq | Token::Gt | Token::GtEq => Precedence::LessGreater,
+            Token::Plus | Token::Minus => Precedence::Sum,
+            Token::Slash | Token::Asterisk => Precedence::Product,
+            _ => Precedence::Lowest,
+        }
+    }
+
+    fn next_token(&mut self) {
+        self.current_token = self.peeked_token.clone();
+        self.peeked_token = self.lexer.next();
+    }
+}
+
+impl Parser {
     fn parse(&mut self) -> Result<Program, String> {
         let mut statements = Vec::new();
         while self.current_token != Token::Eof {
@@ -113,26 +136,6 @@ impl Parser {
 
         Ok(Statement::Expression(expr))
     }
-
-    fn peek_precedence(&self) -> Precedence {
-        self.get_precedence(self.peeked_token.clone())
-    }
-
-    fn get_precedence(&self, token: Token) -> Precedence {
-        match token {
-            Token::Assignment => Precedence::Assignment,
-            Token::Eq | Token::NotEq => Precedence::Equals,
-            Token::Lt | Token::LtEq | Token::Gt | Token::GtEq => Precedence::LessGreater,
-            Token::Plus | Token::Minus => Precedence::Sum,
-            Token::Slash | Token::Asterisk => Precedence::Product,
-            _ => Precedence::Lowest,
-        }
-    }
-
-    fn next_token(&mut self) {
-        self.current_token = self.peeked_token.clone();
-        self.peeked_token = self.lexer.next();
-    }
 }
 
 #[cfg(test)]
@@ -143,52 +146,6 @@ mod test {
     };
 
     use super::*;
-
-    #[test]
-    fn test_parse_block_statement() {
-        let cases = vec![
-            (String::from("{}"), Statement::Block(vec![])),
-            (
-                String::from("{ return 0; }"),
-                Statement::Block(vec![Statement::Return(Expression::Integer(0))]),
-            ),
-            (
-                String::from("{ int i = 0; i = i + 1; return 0; }"),
-                Statement::Block(vec![
-                    Statement::InitDeclaration(InitDeclaration::new(
-                        String::from("i"),
-                        8,
-                        Type::Primitive(TypeEnum::Int),
-                        Some(Expression::Integer(0)),
-                    )),
-                    Statement::Expression(Expression::Binary(BinaryExpression::new(
-                        Expression::LocalVariable {
-                            name: String::from("i"),
-                            offset: 8,
-                            type_: Type::Primitive(TypeEnum::Int),
-                        },
-                        BinaryOperator::Assignment,
-                        Expression::Binary(BinaryExpression::new(
-                            Expression::LocalVariable {
-                                name: String::from("i"),
-                                offset: 8,
-                                type_: Type::Primitive(TypeEnum::Int),
-                            },
-                            BinaryOperator::Plus,
-                            Expression::Integer(1),
-                        )),
-                    ))),
-                    Statement::Return(Expression::Integer(0)),
-                ]),
-            ),
-        ];
-
-        for (input, expected) in cases {
-            let lexer = Lexer::new(input);
-            let mut parser = Parser::new(lexer);
-            assert_eq!(parser.parse_statement().unwrap(), expected);
-        }
-    }
 
     #[test]
     fn test_parse() {
@@ -339,6 +296,52 @@ mod test {
             let lexer = Lexer::new(input);
             let mut parser = Parser::new(lexer);
             assert_eq!(parser.parse().unwrap(), expected);
+        }
+    }
+
+    #[test]
+    fn test_parse_block_statement() {
+        let cases = vec![
+            (String::from("{}"), Statement::Block(vec![])),
+            (
+                String::from("{ return 0; }"),
+                Statement::Block(vec![Statement::Return(Expression::Integer(0))]),
+            ),
+            (
+                String::from("{ int i = 0; i = i + 1; return 0; }"),
+                Statement::Block(vec![
+                    Statement::InitDeclaration(InitDeclaration::new(
+                        String::from("i"),
+                        8,
+                        Type::Primitive(TypeEnum::Int),
+                        Some(Expression::Integer(0)),
+                    )),
+                    Statement::Expression(Expression::Binary(BinaryExpression::new(
+                        Expression::LocalVariable {
+                            name: String::from("i"),
+                            offset: 8,
+                            type_: Type::Primitive(TypeEnum::Int),
+                        },
+                        BinaryOperator::Assignment,
+                        Expression::Binary(BinaryExpression::new(
+                            Expression::LocalVariable {
+                                name: String::from("i"),
+                                offset: 8,
+                                type_: Type::Primitive(TypeEnum::Int),
+                            },
+                            BinaryOperator::Plus,
+                            Expression::Integer(1),
+                        )),
+                    ))),
+                    Statement::Return(Expression::Integer(0)),
+                ]),
+            ),
+        ];
+
+        for (input, expected) in cases {
+            let lexer = Lexer::new(input);
+            let mut parser = Parser::new(lexer);
+            assert_eq!(parser.parse_statement().unwrap(), expected);
         }
     }
 }
