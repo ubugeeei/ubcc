@@ -416,4 +416,30 @@ mod test {
             );
         }
     }
+
+    #[test]
+    fn parse_call_expression() {
+        let cases = vec![
+            (
+                String::from("foo();"),
+                Expression::Call(CallExpression::new(String::from("foo"), vec![])),
+            ),
+            (
+                String::from("bar(1, 2);"),
+                Expression::Call(CallExpression::new(
+                    String::from("bar"),
+                    vec![Expression::Integer(1), Expression::Integer(2)],
+                )),
+            ),
+        ];
+
+        for (input, expected) in cases {
+            let lexer = Lexer::new(input);
+            let mut parser = Parser::new(lexer);
+            assert_eq!(
+                parser.parse_expression(Precedence::Lowest).unwrap(),
+                expected
+            );
+        }
+    }
 }

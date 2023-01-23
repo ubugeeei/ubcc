@@ -58,3 +58,73 @@ impl Parser {
         Ok(Statement::Return(expr))
     }
 }
+
+#[cfg(test)]
+mod test {
+    use ast::{BinaryExpression, BinaryOperator, Expression, Type, TypeEnum};
+    use lex::Lexer;
+
+    use super::*;
+
+    #[test]
+    fn test_parse_function_definition() {
+        let cases = vec![
+            (
+                String::from("int foo() { return 0; }"),
+                Statement::FunctionDefinition(FunctionDefinition::new(
+                    String::from("foo"),
+                    vec![],
+                    vec![Statement::Return(Expression::Integer(0))],
+                )),
+            ),
+            (
+                String::from("int foo(int a, int b) { return 0; }"),
+                Statement::FunctionDefinition(FunctionDefinition::new(
+                    String::from("foo"),
+                    vec![
+                        Expression::LocalVariable {
+                            name: String::from("a"),
+                            offset: 8,
+                            type_: Type::Primitive(TypeEnum::Int),
+                        },
+                        Expression::LocalVariable {
+                            name: String::from("b"),
+                            offset: 16,
+                            type_: Type::Primitive(TypeEnum::Int),
+                        },
+                    ],
+                    vec![Statement::Return(Expression::Integer(0))],
+                )),
+            ),
+        ];
+        for (input, expected) in cases {
+            let lexer = Lexer::new(input);
+            let mut parser = Parser::new(lexer);
+            assert_eq!(parser.parse_statement().unwrap(), expected);
+        }
+    }
+
+    #[test]
+    fn test_parse_return_statement() {
+        let cases = vec![
+            (
+                String::from("return 5;"),
+                Statement::Return(Expression::Integer(5)),
+            ),
+            (
+                String::from("return 5 + 5;"),
+                Statement::Return(Expression::Binary(BinaryExpression::new(
+                    Expression::Integer(5),
+                    BinaryOperator::Plus,
+                    Expression::Integer(5),
+                ))),
+            ),
+        ];
+
+        for (input, expected) in cases {
+            let lexer = Lexer::new(input);
+            let mut parser = Parser::new(lexer);
+            assert_eq!(parser.parse_statement().unwrap(), expected);
+        }
+    }
+}
