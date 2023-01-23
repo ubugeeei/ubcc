@@ -15,6 +15,7 @@ pub fn compile(input: String) {
 struct Compiler {
     ast: Program,
 }
+
 impl Compiler {
     fn new(input: String) -> Self {
         let ast = match parse::parse(input) {
@@ -27,12 +28,19 @@ impl Compiler {
         Self { ast }
     }
 }
+
 impl Compiler {
     fn compile(&self) {
         println!(".intel_syntax noprefix");
         println!(".global main");
         println!("");
         for stmt in self.ast.statements.iter() {
+            self.compile_stmt(stmt);
+        }
+    }
+
+    fn compile_stmts(&self, stmts: &[Statement]) {
+        for stmt in stmts.iter() {
             self.compile_stmt(stmt);
         }
     }
@@ -49,12 +57,6 @@ impl Compiler {
                 self.compile_function_definition(function_def)
             }
             Statement::InitDeclaration(init_decl) => self.compile_init_declaration(init_decl),
-        }
-    }
-
-    fn compile_stmts(&self, stmts: &[Statement]) {
-        for stmt in stmts.iter() {
-            self.compile_stmt(stmt);
         }
     }
 }
