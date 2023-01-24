@@ -155,6 +155,10 @@ pub enum Expression {
     Binary(BinaryExpression),
     Unary(UnaryExpression),
     Call(CallExpression),
+    Index {
+        expr: Box<Expression>,
+        index: Box<Expression>,
+    },
 }
 
 #[derive(Debug, PartialEq, Eq)]
