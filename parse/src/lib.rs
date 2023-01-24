@@ -28,6 +28,7 @@ enum Precedence {
     LessGreater,
     Sum,
     Product,
+    LBracket,
 }
 
 struct Parser {
@@ -61,6 +62,7 @@ impl Parser {
             Token::Lt | Token::LtEq | Token::Gt | Token::GtEq => Precedence::LessGreater,
             Token::Plus | Token::Minus => Precedence::Sum,
             Token::Slash | Token::Asterisk => Precedence::Product,
+            Token::LBracket => Precedence::LBracket,
             _ => Precedence::Lowest,
         }
     }

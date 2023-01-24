@@ -41,6 +41,10 @@ impl Parser {
                     self.next_token();
                     self.parse_binary_expression(expr)?
                 }
+                Token::LBracket => {
+                    self.next_token();
+                    self.perse_index_expression(expr)?
+                }
                 _ => panic!(""), // TODO:
             }
         }
@@ -160,10 +164,28 @@ impl Parser {
             arguments,
         )))
     }
+
+    pub(super) fn perse_index_expression(
+        &mut self,
+        left: Expression,
+    ) -> Result<Expression, String> {
+        self.next_token(); // skip '['
+        let index = self.parse_expression(Precedence::Lowest)?;
+        if self.peeked_token != Token::RBracket {
+            return Err(format!("Expected ']', but got {:?}", self.peeked_token));
+        }
+        self.next_token(); // skip ']'
+
+        Ok(Expression::Index {
+            expr: Box::new(left),
+            index: Box::new(index),
+        })
+    }
 }
 
 #[cfg(test)]
 mod test {
+    use ast::{InitDeclaration, Statement, Type, TypeEnum};
     use lex::Lexer;
 
     use super::*;
@@ -440,6 +462,41 @@ mod test {
                 parser.parse_expression(Precedence::Lowest).unwrap(),
                 expected
             );
+        }
+    }
+
+    #[test]
+    fn parse_index_expression() {
+        let cases = vec![(
+            String::from("int foo[3]; foo[1];"),
+            vec![
+                Statement::InitDeclaration(InitDeclaration::new(
+                    String::from("foo"),
+                    24,
+                    Type::Array {
+                        type_: Box::new(Type::Primitive(TypeEnum::Int)),
+                        size: 3,
+                    },
+                    None,
+                )),
+                Statement::Expression(Expression::Index {
+                    expr: Box::new(Expression::LocalVariable {
+                        name: String::from("foo"),
+                        offset: 24,
+                        type_: Type::Array {
+                            type_: Box::new(Type::Primitive(TypeEnum::Int)),
+                            size: 3,
+                        },
+                    }),
+                    index: Box::new(Expression::Integer(1)),
+                }),
+            ],
+        )];
+
+        for (input, expected) in cases {
+            let lexer = Lexer::new(input);
+            let mut parser = Parser::new(lexer);
+            assert_eq!(parser.parse().unwrap().statements, expected);
         }
     }
 }
