@@ -1,31 +1,36 @@
-use ast::{IfStatement, WhileStatement};
+use ast::{Expression, Statement, WhileStatement};
 
 use crate::CodeGenerator;
 
 impl CodeGenerator {
-    pub(super) fn gen_if(&self, if_stmt: &IfStatement) {
+    pub(super) fn gen_if(
+        &self,
+        condition: &Expression,
+        consequence: &Box<Statement>,
+        alternative: &Option<Box<Statement>>,
+    ) {
         println!("# -- start if");
-        match if_stmt.alternative.as_ref() {
+        match alternative {
             Some(alternative) => {
                 let label_else = format!(".Lelse{}", rand::random::<u32>());
                 let label_end = format!(".Lend{}", rand::random::<u32>());
-                self.gen_expr(&if_stmt.condition);
+                self.gen_expr(condition);
                 println!("  pop rax");
                 println!("  cmp rax, 0");
                 println!("  je {label_else}");
-                self.gen_stmt(&*if_stmt.consequence);
+                self.gen_stmt(consequence);
                 println!("  jmp {label_end}");
                 println!("{label_else}:");
-                self.gen_stmt(&*alternative);
+                self.gen_stmt(alternative);
                 println!("{label_end}:");
             }
             None => {
                 let label = format!(".Lend{}", rand::random::<u32>());
-                self.gen_expr(&if_stmt.condition);
+                self.gen_expr(condition);
                 println!("  pop rax");
                 println!("  cmp rax, 0");
                 println!("  je {}", label);
-                self.gen_stmt(&*if_stmt.consequence);
+                self.gen_stmt(consequence);
                 println!("{label}:");
             }
         }

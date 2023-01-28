@@ -40,7 +40,11 @@ impl CodeGenerator {
 
     fn gen_stmt(&self, node: &Statement) {
         match node {
-            Statement::If(if_stmt) => self.gen_if(if_stmt),
+            Statement::If {
+                condition,
+                consequence,
+                alternative,
+            } => self.gen_if(condition, consequence, alternative),
             Statement::While(while_stmt) => self.gen_while(while_stmt),
             Statement::For(for_stmt) => self.gen_for(for_stmt),
             Statement::Block(stmts) => self.gen_stmts(stmts),

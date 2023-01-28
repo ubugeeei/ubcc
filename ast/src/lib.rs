@@ -11,7 +11,11 @@ impl Program {
 #[derive(Debug, PartialEq, Eq)]
 pub enum Statement {
     Expression(Expression),
-    If(IfStatement),
+    If {
+        condition: Expression,
+        consequence: Box<Statement>,
+        alternative: Option<Box<Statement>>,
+    },
     While(WhileStatement),
     For(ForStatement),
     Block(Vec<Statement>),
@@ -25,19 +29,6 @@ pub struct IfStatement {
     pub condition: Expression,
     pub consequence: Box<Statement>,
     pub alternative: Option<Box<Statement>>,
-}
-impl IfStatement {
-    pub fn new(
-        condition: Expression,
-        consequence: Statement,
-        alternative: Option<Statement>,
-    ) -> Self {
-        Self {
-            condition,
-            consequence: Box::new(consequence),
-            alternative: alternative.map(Box::new),
-        }
-    }
 }
 
 #[derive(Debug, PartialEq, Eq)]

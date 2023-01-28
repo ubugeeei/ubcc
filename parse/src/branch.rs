@@ -1,4 +1,4 @@
-use ast::{IfStatement, Statement};
+use ast::Statement;
 use lex::tokens::Token;
 
 use crate::{Parser, Precedence};
@@ -38,11 +38,11 @@ impl Parser {
             None
         };
 
-        Ok(Statement::If(IfStatement::new(
+        Ok(Statement::If {
             condition,
-            consequence,
-            alternative,
-        )))
+            consequence: Box::new(consequence),
+            alternative: alternative.map(Box::new),
+        })
     }
 }
 
@@ -50,8 +50,7 @@ impl Parser {
 mod test {
     use super::*;
     use ast::{
-        BinaryExpression, BinaryOperator, Expression, IfStatement, InitDeclaration, Statement,
-        Type, TypeEnum,
+        BinaryExpression, BinaryOperator, Expression, InitDeclaration, Statement, Type, TypeEnum,
     };
     use lex::Lexer;
 
@@ -67,8 +66,8 @@ mod test {
                         Type::Primitive(TypeEnum::Int),
                         Some(Expression::Integer(0)),
                     )),
-                    Statement::If(IfStatement::new(
-                        Expression::Binary(BinaryExpression::new(
+                    Statement::If {
+                        condition: Expression::Binary(BinaryExpression::new(
                             Expression::LocalVariable {
                                 name: String::from("a"),
                                 offset: 8,
@@ -77,9 +76,9 @@ mod test {
                             BinaryOperator::Eq,
                             Expression::Integer(0),
                         )),
-                        Statement::Return(Expression::Integer(0)),
-                        None,
-                    )),
+                        consequence: Box::new(Statement::Return(Expression::Integer(0))),
+                        alternative: None,
+                    },
                 ],
             ),
             (
@@ -91,8 +90,8 @@ mod test {
                         Type::Primitive(TypeEnum::Int),
                         Some(Expression::Integer(0)),
                     )),
-                    Statement::If(IfStatement::new(
-                        Expression::Binary(BinaryExpression::new(
+                    Statement::If {
+                        condition: Expression::Binary(BinaryExpression::new(
                             Expression::LocalVariable {
                                 name: String::from("a"),
                                 offset: 8,
@@ -101,9 +100,9 @@ mod test {
                             BinaryOperator::Eq,
                             Expression::Integer(0),
                         )),
-                        Statement::Return(Expression::Integer(0)),
-                        Some(Statement::Return(Expression::Integer(1))),
-                    )),
+                        consequence: Box::new(Statement::Return(Expression::Integer(0))),
+                        alternative: Some(Box::new(Statement::Return(Expression::Integer(1)))),
+                    },
                 ],
             ),
         ];
