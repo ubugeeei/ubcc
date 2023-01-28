@@ -1,13 +1,13 @@
 use ast::{Expression, InitDeclaration};
 
-use crate::Compiler;
+use crate::CodeGenerator;
 
-impl Compiler {
-    pub(super) fn compile_init_declaration(&self, init_decl: &InitDeclaration) {
+impl CodeGenerator {
+    pub(super) fn gen_init_declaration(&self, init_decl: &InitDeclaration) {
         println!("  # -- init declaration {}", init_decl.name);
-        self.compile_init_lval(init_decl.offset);
+        self.gen_init_lval(init_decl.offset);
         match init_decl.init {
-            Some(ref init) => self.compile_expr(init),
+            Some(ref init) => self.gen_expr(init),
             None => {
                 println!("  push rax");
             }
@@ -18,7 +18,7 @@ impl Compiler {
         println!("  push rdi");
         println!("");
     }
-    pub(super) fn compile_lval(&self, node: &Expression) {
+    pub(super) fn gen_lval(&self, node: &Expression) {
         match node {
             Expression::LocalVariable { offset, .. } => {
                 println!("  mov rax, rbp");
@@ -35,7 +35,7 @@ impl Compiler {
         }
     }
 
-    pub(super) fn compile_init_lval(&self, offset: usize) {
+    pub(super) fn gen_init_lval(&self, offset: usize) {
         println!("  mov rax, rbp");
         println!("  sub rax, {offset}");
         println!("  push rax");

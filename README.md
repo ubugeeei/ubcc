@@ -1,5 +1,5 @@
 # ubcc
-A toy C Compiler implemented by Rust.
+A toy C CodeGenerator implemented by Rust.
 
 
 ### Usage

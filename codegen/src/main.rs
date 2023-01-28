@@ -5,5 +5,5 @@ fn main() {
     }
 
     let input = argv[1].clone();
-    compile::compile(input);
+    codegen::codegen(input);
 }

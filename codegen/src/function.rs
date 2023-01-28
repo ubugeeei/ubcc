@@ -1,9 +1,9 @@
 use ast::{FunctionDefinition, Expression};
 
-use crate::Compiler;
+use crate::CodeGenerator;
 
-impl Compiler {
-    pub(super) fn compile_function_definition(&self, function_def: &FunctionDefinition) {
+impl CodeGenerator {
+    pub(super) fn gen_function_definition(&self, function_def: &FunctionDefinition) {
         println!("# ====== function definition ======");
         println!("{}:", function_def.name);
         println!("  # prologue");
@@ -25,13 +25,13 @@ impl Compiler {
         println!("");
 
         println!("  # body");
-        self.compile_stmts(&function_def.body);
+        self.gen_stmts(&function_def.body);
         println!("");
     }
 
-    pub(super) fn compile_return(&self, node: &Expression) {
+    pub(super) fn gen_return(&self, node: &Expression) {
         println!("  # -- return");
-        self.compile_expr(node);
+        self.gen_expr(node);
         println!("  # epilogue");
         println!("  pop rax");
         println!("  mov rsp, rbp");

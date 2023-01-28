@@ -1,16 +1,16 @@
 use ast::ForStatement;
 
-use crate::Compiler;
+use crate::CodeGenerator;
 
-impl Compiler {
-    pub(super) fn compile_for(&self, for_stmt: &ForStatement) {
+impl CodeGenerator {
+    pub(super) fn gen_for(&self, for_stmt: &ForStatement) {
         println!("# -- start for");
         let label_begin = format!(".Lbegin{}", rand::random::<u32>());
         let label_end = format!(".Lend{}", rand::random::<u32>());
 
         // init
         match for_stmt.init.as_ref() {
-            Some(init) => self.compile_stmt(init),
+            Some(init) => self.gen_stmt(init),
             None => {}
         }
         println!("{label_begin}:");
@@ -18,7 +18,7 @@ impl Compiler {
         // condition and jump
         match for_stmt.condition.as_ref() {
             Some(ref condition) => {
-                self.compile_expr(condition);
+                self.gen_expr(condition);
                 println!("  pop rax");
                 println!("  cmp rax, 0");
                 println!("  je {label_end}");
@@ -27,11 +27,11 @@ impl Compiler {
         }
 
         // body
-        self.compile_stmt(for_stmt.body.as_ref());
+        self.gen_stmt(for_stmt.body.as_ref());
 
         // update
         match for_stmt.post.as_ref() {
-            Some(update) => self.compile_stmt(update),
+            Some(update) => self.gen_stmt(update),
             None => {}
         }
 
