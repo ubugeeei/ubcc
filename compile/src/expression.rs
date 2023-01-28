@@ -209,6 +209,7 @@ impl Compiler {
                 }
                 println!("  push rax");
             }
+            _ => todo!(),
         }
     }
 }
