@@ -159,6 +159,9 @@ pub enum Expression {
         expr: Box<Expression>,
         index: Box<Expression>,
     },
+    Array {
+        elements: Vec<Expression>,
+    },
 }
 
 #[derive(Debug, PartialEq, Eq)]
