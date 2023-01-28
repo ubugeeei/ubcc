@@ -1,4 +1,4 @@
-use ast::{ForStatement, Statement};
+use ast::Statement;
 use lex::tokens::Token;
 
 use crate::{Parser, Precedence};
@@ -47,7 +47,7 @@ impl Parser {
         let init = if self.current_token == Token::SemiColon {
             None
         } else {
-            Some(self.parse_expression_statement()?)
+            Some(Box::new(self.parse_expression_statement()?))
         };
         self.next_token(); // skip ';'
 
@@ -67,13 +67,13 @@ impl Parser {
             }
         };
 
-        let step = if self.current_token == Token::RParen {
+        let post = if self.current_token == Token::RParen {
             None
         } else {
             let expr = self.parse_statement()?;
             if self.current_token == Token::RParen {
                 self.next_token();
-                Some(expr)
+                Some(Box::new(expr))
             } else {
                 return Err(format!(
                     "expected token ')' but got {:?}",
@@ -82,11 +82,14 @@ impl Parser {
             }
         };
 
-        let body = self.parse_statement()?;
+        let body = Box::new(self.parse_statement()?);
 
-        Ok(Statement::For(ForStatement::new(
-            init, condition, step, body,
-        )))
+        Ok(Statement::For {
+            init,
+            condition,
+            post,
+            body,
+        })
     }
 }
 
@@ -141,8 +144,8 @@ mod test {
                     Type::Primitive(TypeEnum::Int),
                     Some(Expression::Integer(0)),
                 )),
-                Statement::For(ForStatement::new(
-                    Some(Statement::Expression(Expression::Binary(
+                Statement::For {
+                    init: Some(Box::new(Statement::Expression(Expression::Binary(
                         BinaryExpression::new(
                             Expression::LocalVariable {
                                 name: String::from("i"),
@@ -152,8 +155,8 @@ mod test {
                             BinaryOperator::Assignment,
                             Expression::Integer(0),
                         ),
-                    ))),
-                    Some(Expression::Binary(BinaryExpression::new(
+                    )))),
+                    condition: Some(Expression::Binary(BinaryExpression::new(
                         Expression::LocalVariable {
                             name: String::from("i"),
                             offset: 8,
@@ -162,7 +165,7 @@ mod test {
                         BinaryOperator::Lt,
                         Expression::Integer(10),
                     ))),
-                    Some(Statement::Expression(Expression::Binary(
+                    post: Some(Box::new(Statement::Expression(Expression::Binary(
                         BinaryExpression::new(
                             Expression::LocalVariable {
                                 name: String::from("i"),
@@ -180,9 +183,9 @@ mod test {
                                 Expression::Integer(1),
                             )),
                         ),
-                    ))),
-                    Statement::Return(Expression::Integer(0)),
-                )),
+                    )))),
+                    body: Box::new(Statement::Return(Expression::Integer(0))),
+                },
             ],
         )];
 

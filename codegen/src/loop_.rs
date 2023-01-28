@@ -1,22 +1,28 @@
-use ast::ForStatement;
+use ast::{Expression, Statement};
 
 use crate::CodeGenerator;
 
 impl CodeGenerator {
-    pub(super) fn gen_for(&self, for_stmt: &ForStatement) {
+    pub(super) fn gen_for(
+        &self,
+        init: &Option<Box<Statement>>,
+        condition: &Option<Expression>,
+        post: &Option<Box<Statement>>,
+        body: &Box<Statement>,
+    ) {
         println!("# -- start for");
         let label_begin = format!(".Lbegin{}", rand::random::<u32>());
         let label_end = format!(".Lend{}", rand::random::<u32>());
 
         // init
-        match for_stmt.init.as_ref() {
+        match init {
             Some(init) => self.gen_stmt(init),
             None => {}
         }
         println!("{label_begin}:");
 
         // condition and jump
-        match for_stmt.condition.as_ref() {
+        match condition {
             Some(ref condition) => {
                 self.gen_expr(condition);
                 println!("  pop rax");
@@ -27,10 +33,10 @@ impl CodeGenerator {
         }
 
         // body
-        self.gen_stmt(for_stmt.body.as_ref());
+        self.gen_stmt(body);
 
         // update
-        match for_stmt.post.as_ref() {
+        match post {
             Some(update) => self.gen_stmt(update),
             None => {}
         }

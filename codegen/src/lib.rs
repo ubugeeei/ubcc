@@ -46,7 +46,12 @@ impl CodeGenerator {
                 alternative,
             } => self.gen_if(condition, consequence, alternative),
             Statement::While { condition, body } => self.gen_while(condition, body),
-            Statement::For(for_stmt) => self.gen_for(for_stmt),
+            Statement::For {
+                init,
+                condition,
+                post,
+                body,
+            } => self.gen_for(init, condition, post, body),
             Statement::Block(stmts) => self.gen_stmts(stmts),
             Statement::Expression(expr) => self.gen_expr(expr),
             Statement::Return(expr) => self.gen_return(expr),

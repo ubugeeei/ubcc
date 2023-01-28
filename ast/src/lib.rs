@@ -20,34 +20,16 @@ pub enum Statement {
         condition: Expression,
         body: Box<Statement>,
     },
-    For(ForStatement),
+    For {
+        init: Option<Box<Statement>>,
+        condition: Option<Expression>,
+        post: Option<Box<Statement>>,
+        body: Box<Statement>,
+    },
     Block(Vec<Statement>),
     Return(Expression),
     FunctionDefinition(FunctionDefinition),
     InitDeclaration(InitDeclaration),
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub struct ForStatement {
-    pub init: Option<Box<Statement>>,
-    pub condition: Option<Expression>,
-    pub post: Option<Box<Statement>>,
-    pub body: Box<Statement>,
-}
-impl ForStatement {
-    pub fn new(
-        init: Option<Statement>,
-        condition: Option<Expression>,
-        post: Option<Statement>,
-        body: Statement,
-    ) -> Self {
-        Self {
-            init: init.map(Box::new),
-            condition,
-            post: post.map(Box::new),
-            body: Box::new(body),
-        }
-    }
 }
 
 #[derive(Debug, PartialEq, Eq)]
