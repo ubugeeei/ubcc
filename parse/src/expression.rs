@@ -21,6 +21,7 @@ impl Parser {
                 }
                 _ => self.parse_identifier_expression(name)?,
             },
+            Token::LBrace => self.parse_array_expression()?,
 
             _ => return Err(format!("Invalid token: {:?}", self.current_token)),
         };
@@ -180,6 +181,26 @@ impl Parser {
             expr: Box::new(left),
             index: Box::new(index),
         })
+    }
+
+    // TODO: valid only initial declaration
+    pub(crate) fn parse_array_expression(&mut self) -> Result<Expression, String> {
+        let mut elements = vec![];
+
+        while self.peeked_token != Token::RBrace {
+            self.next_token();
+            let expr = self.parse_expression(Precedence::Lowest)?;
+            elements.push(expr);
+
+            if self.peeked_token == Token::Comma {
+                self.next_token(); // skip ','
+            }
+        }
+
+        self.next_token();
+        self.next_token(); // skip '}'
+
+        Ok(Expression::Array { elements })
     }
 }
 
@@ -497,6 +518,34 @@ mod test {
             let lexer = Lexer::new(input);
             let mut parser = Parser::new(lexer);
             assert_eq!(parser.parse().unwrap().statements, expected);
+        }
+    }
+
+    #[test]
+    fn test_parse_array_expression() {
+        let cases = vec![(
+            String::from("int array[3] = { 1, 2, 3 };"),
+            Statement::InitDeclaration(InitDeclaration::new(
+                String::from("array"),
+                24,
+                Type::Array {
+                    type_: Box::new(Type::Primitive(TypeEnum::Int)),
+                    size: 3,
+                },
+                Some(Expression::Array {
+                    elements: vec![
+                        Expression::Integer(1),
+                        Expression::Integer(2),
+                        Expression::Integer(3),
+                    ],
+                }),
+            )),
+        )];
+
+        for (input, expected) in cases {
+            let lexer = Lexer::new(input);
+            let mut parser = Parser::new(lexer);
+            assert_eq!(parser.parse().unwrap().statements, vec![expected]);
         }
     }
 }
