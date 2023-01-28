@@ -142,8 +142,7 @@ impl Parser {
 #[cfg(test)]
 mod test {
     use ast::{
-        BinaryExpression, BinaryOperator, CallExpression, Expression, TypeEnum, UnaryExpression,
-        UnaryOperator,
+        BinaryOperator, CallExpression, Expression, TypeEnum, UnaryExpression, UnaryOperator,
     };
 
     use super::*;
@@ -155,15 +154,15 @@ mod test {
                 String::from("5;1+2*3;"),
                 Program::new(vec![
                     Statement::Expression(Expression::Integer(5)),
-                    Statement::Expression(Expression::Binary(BinaryExpression::new(
-                        Expression::Integer(1),
-                        BinaryOperator::Plus,
-                        Expression::Binary(BinaryExpression::new(
-                            Expression::Integer(2),
-                            BinaryOperator::Asterisk,
-                            Expression::Integer(3),
-                        )),
-                    ))),
+                    Statement::Expression(Expression::Binary {
+                        lhs: Box::new(Expression::Integer(1)),
+                        op: BinaryOperator::Plus,
+                        rhs: Box::new(Expression::Binary {
+                            lhs: Box::new(Expression::Integer(2)),
+                            op: BinaryOperator::Asterisk,
+                            rhs: Box::new(Expression::Integer(3)),
+                        }),
+                    }),
                 ]),
             ),
             (
@@ -242,8 +241,8 @@ mod test {
                             type_: Type::Pointer(Box::new(Type::Primitive(TypeEnum::Int))),
                         }],
                         body: vec![
-                            Statement::Expression(Expression::Binary(BinaryExpression::new(
-                                Expression::Unary(UnaryExpression::new(
+                            Statement::Expression(Expression::Binary {
+                                lhs: Box::new(Expression::Unary(UnaryExpression::new(
                                     Expression::LocalVariable {
                                         name: String::from("x"),
                                         offset: 8,
@@ -252,10 +251,10 @@ mod test {
                                         ))),
                                     },
                                     UnaryOperator::Dereference,
-                                )),
-                                BinaryOperator::Assignment,
-                                Expression::Integer(1),
-                            ))),
+                                ))),
+                                op: BinaryOperator::Assignment,
+                                rhs: Box::new(Expression::Integer(1)),
+                            }),
                             Statement::Return(Expression::Integer(0)),
                         ],
                     },
@@ -317,23 +316,23 @@ mod test {
                         type_: Type::Primitive(TypeEnum::Int),
                         init: Some(Expression::Integer(0)),
                     },
-                    Statement::Expression(Expression::Binary(BinaryExpression::new(
-                        Expression::LocalVariable {
+                    Statement::Expression(Expression::Binary {
+                        lhs: Box::new(Expression::LocalVariable {
                             name: String::from("i"),
                             offset: 8,
                             type_: Type::Primitive(TypeEnum::Int),
-                        },
-                        BinaryOperator::Assignment,
-                        Expression::Binary(BinaryExpression::new(
-                            Expression::LocalVariable {
+                        }),
+                        op: BinaryOperator::Assignment,
+                        rhs: Box::new(Expression::Binary {
+                            lhs: Box::new(Expression::LocalVariable {
                                 name: String::from("i"),
                                 offset: 8,
                                 type_: Type::Primitive(TypeEnum::Int),
-                            },
-                            BinaryOperator::Plus,
-                            Expression::Integer(1),
-                        )),
-                    ))),
+                            }),
+                            op: BinaryOperator::Plus,
+                            rhs: Box::new(Expression::Integer(1)),
+                        }),
+                    }),
                     Statement::Return(Expression::Integer(0)),
                 ]),
             ),

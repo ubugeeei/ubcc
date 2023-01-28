@@ -1,6 +1,4 @@
-use ast::{
-    BinaryExpression, BinaryOperator, CallExpression, Expression, UnaryExpression, UnaryOperator,
-};
+use ast::{BinaryOperator, CallExpression, Expression, UnaryExpression, UnaryOperator};
 use lex::tokens::Token;
 
 use crate::{LVar, Parser, Precedence};
@@ -85,7 +83,7 @@ impl Parser {
 
     pub(super) fn parse_binary_expression(
         &mut self,
-        left: Expression,
+        lhs: Expression,
     ) -> Result<Expression, String> {
         let (op, swap) = match self.current_token {
             Token::Assignment => (BinaryOperator::Assignment, false),
@@ -108,13 +106,21 @@ impl Parser {
         };
         let precedence = self.get_precedence(self.current_token.clone());
         self.next_token();
-        let right = self.parse_expression(precedence)?;
+        let rhs = Box::new(self.parse_expression(precedence)?);
 
         // when swap is true, swap left and right
         if swap {
-            Ok(Expression::Binary(BinaryExpression::new(right, op, left)))
+            Ok(Expression::Binary {
+                rhs: Box::new(lhs),
+                op,
+                lhs: rhs,
+            })
         } else {
-            Ok(Expression::Binary(BinaryExpression::new(left, op, right)))
+            Ok(Expression::Binary {
+                rhs,
+                op,
+                lhs: Box::new(lhs),
+            })
         }
     }
 
@@ -269,58 +275,58 @@ mod test {
         let case = vec![
             (
                 String::from("5 + 5"),
-                Expression::Binary(BinaryExpression::new(
-                    Expression::Integer(5),
-                    BinaryOperator::Plus,
-                    Expression::Integer(5),
-                )),
+                Expression::Binary {
+                    lhs: Box::new(Expression::Integer(5)),
+                    op: BinaryOperator::Plus,
+                    rhs: Box::new(Expression::Integer(5)),
+                },
             ),
             (
                 String::from("5 - 5"),
-                Expression::Binary(BinaryExpression::new(
-                    Expression::Integer(5),
-                    BinaryOperator::Minus,
-                    Expression::Integer(5),
-                )),
+                Expression::Binary {
+                    lhs: Box::new(Expression::Integer(5)),
+                    op: BinaryOperator::Minus,
+                    rhs: Box::new(Expression::Integer(5)),
+                },
             ),
             (
                 String::from("5 * 5"),
-                Expression::Binary(BinaryExpression::new(
-                    Expression::Integer(5),
-                    BinaryOperator::Asterisk,
-                    Expression::Integer(5),
-                )),
+                Expression::Binary {
+                    lhs: Box::new(Expression::Integer(5)),
+                    op: BinaryOperator::Asterisk,
+                    rhs: Box::new(Expression::Integer(5)),
+                },
             ),
             (
                 String::from("5 / 5"),
-                Expression::Binary(BinaryExpression::new(
-                    Expression::Integer(5),
-                    BinaryOperator::Slash,
-                    Expression::Integer(5),
-                )),
+                Expression::Binary {
+                    lhs: Box::new(Expression::Integer(5)),
+                    op: BinaryOperator::Slash,
+                    rhs: Box::new(Expression::Integer(5)),
+                },
             ),
             // include unary
             (
                 String::from("-5 + 5"),
-                Expression::Binary(BinaryExpression::new(
-                    Expression::Unary(UnaryExpression::new(
+                Expression::Binary {
+                    lhs: Box::new(Expression::Unary(UnaryExpression::new(
                         Expression::Integer(5),
                         UnaryOperator::Minus,
-                    )),
-                    BinaryOperator::Plus,
-                    Expression::Integer(5),
-                )),
+                    ))),
+                    op: BinaryOperator::Plus,
+                    rhs: Box::new(Expression::Integer(5)),
+                },
             ),
             (
                 String::from("5 + -5"),
-                Expression::Binary(BinaryExpression::new(
-                    Expression::Integer(5),
-                    BinaryOperator::Plus,
-                    Expression::Unary(UnaryExpression::new(
+                Expression::Binary {
+                    lhs: Box::new(Expression::Integer(5)),
+                    op: BinaryOperator::Plus,
+                    rhs: Box::new(Expression::Unary(UnaryExpression::new(
                         Expression::Integer(5),
                         UnaryOperator::Minus,
-                    )),
-                )),
+                    ))),
+                },
             ),
         ];
 
@@ -339,51 +345,51 @@ mod test {
         let cases = vec![
             (
                 String::from("5 + 5 * 5"),
-                Expression::Binary(BinaryExpression::new(
-                    Expression::Integer(5),
-                    BinaryOperator::Plus,
-                    Expression::Binary(BinaryExpression::new(
-                        Expression::Integer(5),
-                        BinaryOperator::Asterisk,
-                        Expression::Integer(5),
-                    )),
-                )),
+                Expression::Binary {
+                    lhs: Box::new(Expression::Integer(5)),
+                    op: BinaryOperator::Plus,
+                    rhs: Box::new(Expression::Binary {
+                        lhs: Box::new(Expression::Integer(5)),
+                        op: BinaryOperator::Asterisk,
+                        rhs: Box::new(Expression::Integer(5)),
+                    }),
+                },
             ),
             (
                 String::from("1 * 2 + 3 * 4"),
-                Expression::Binary(BinaryExpression::new(
-                    Expression::Binary(BinaryExpression::new(
-                        Expression::Integer(1),
-                        BinaryOperator::Asterisk,
-                        Expression::Integer(2),
-                    )),
-                    BinaryOperator::Plus,
-                    Expression::Binary(BinaryExpression::new(
-                        Expression::Integer(3),
-                        BinaryOperator::Asterisk,
-                        Expression::Integer(4),
-                    )),
-                )),
+                Expression::Binary {
+                    lhs: Box::new(Expression::Binary {
+                        lhs: Box::new(Expression::Integer(1)),
+                        op: BinaryOperator::Asterisk,
+                        rhs: Box::new(Expression::Integer(2)),
+                    }),
+                    op: BinaryOperator::Plus,
+                    rhs: Box::new(Expression::Binary {
+                        lhs: Box::new(Expression::Integer(3)),
+                        op: BinaryOperator::Asterisk,
+                        rhs: Box::new(Expression::Integer(4)),
+                    }),
+                },
             ),
             (
                 String::from("1 * 2 >= 3 * 4 == 0"),
-                Expression::Binary(BinaryExpression::new(
-                    Expression::Binary(BinaryExpression::new(
-                        Expression::Binary(BinaryExpression::new(
-                            Expression::Integer(3),
-                            BinaryOperator::Asterisk,
-                            Expression::Integer(4),
-                        )),
-                        BinaryOperator::LtEq,
-                        Expression::Binary(BinaryExpression::new(
-                            Expression::Integer(1),
-                            BinaryOperator::Asterisk,
-                            Expression::Integer(2),
-                        )),
-                    )),
-                    BinaryOperator::Eq,
-                    Expression::Integer(0),
-                )),
+                Expression::Binary {
+                    lhs: Box::new(Expression::Binary {
+                        lhs: Box::new(Expression::Binary {
+                            lhs: Box::new(Expression::Integer(3)),
+                            op: BinaryOperator::Asterisk,
+                            rhs: Box::new(Expression::Integer(4)),
+                        }),
+                        op: BinaryOperator::LtEq,
+                        rhs: Box::new(Expression::Binary {
+                            lhs: Box::new(Expression::Integer(1)),
+                            op: BinaryOperator::Asterisk,
+                            rhs: Box::new(Expression::Integer(2)),
+                        }),
+                    }),
+                    op: BinaryOperator::Eq,
+                    rhs: Box::new(Expression::Integer(0)),
+                },
             ),
         ];
 
@@ -402,51 +408,51 @@ mod test {
         let cases = vec![
             (
                 String::from("(5 + 5) * 5"),
-                Expression::Binary(BinaryExpression::new(
-                    Expression::Binary(BinaryExpression::new(
-                        Expression::Integer(5),
-                        BinaryOperator::Plus,
-                        Expression::Integer(5),
-                    )),
-                    BinaryOperator::Asterisk,
-                    Expression::Integer(5),
-                )),
+                Expression::Binary {
+                    lhs: Box::new(Expression::Binary {
+                        lhs: Box::new(Expression::Integer(5)),
+                        op: BinaryOperator::Plus,
+                        rhs: Box::new(Expression::Integer(5)),
+                    }),
+                    op: BinaryOperator::Asterisk,
+                    rhs: Box::new(Expression::Integer(5)),
+                },
             ),
             (
                 String::from("1 * (2 + 3) * 4"),
-                Expression::Binary(BinaryExpression::new(
-                    Expression::Binary(BinaryExpression::new(
-                        Expression::Integer(1),
-                        BinaryOperator::Asterisk,
-                        Expression::Binary(BinaryExpression::new(
-                            Expression::Integer(2),
-                            BinaryOperator::Plus,
-                            Expression::Integer(3),
-                        )),
-                    )),
-                    BinaryOperator::Asterisk,
-                    Expression::Integer(4),
-                )),
+                Expression::Binary {
+                    lhs: Box::new(Expression::Binary {
+                        lhs: Box::new(Expression::Integer(1)),
+                        op: BinaryOperator::Asterisk,
+                        rhs: Box::new(Expression::Binary {
+                            lhs: Box::new(Expression::Integer(2)),
+                            op: BinaryOperator::Plus,
+                            rhs: Box::new(Expression::Integer(3)),
+                        }),
+                    }),
+                    op: BinaryOperator::Asterisk,
+                    rhs: Box::new(Expression::Integer(4)),
+                },
             ),
             (
                 String::from("1 * (2 * (3 + 4)) * 5"),
-                Expression::Binary(BinaryExpression::new(
-                    Expression::Binary(BinaryExpression::new(
-                        Expression::Integer(1),
-                        BinaryOperator::Asterisk,
-                        Expression::Binary(BinaryExpression::new(
-                            Expression::Integer(2),
-                            BinaryOperator::Asterisk,
-                            Expression::Binary(BinaryExpression::new(
-                                Expression::Integer(3),
-                                BinaryOperator::Plus,
-                                Expression::Integer(4),
-                            )),
-                        )),
-                    )),
-                    BinaryOperator::Asterisk,
-                    Expression::Integer(5),
-                )),
+                Expression::Binary {
+                    lhs: Box::new(Expression::Binary {
+                        lhs: Box::new(Expression::Integer(1)),
+                        op: BinaryOperator::Asterisk,
+                        rhs: Box::new(Expression::Binary {
+                            lhs: Box::new(Expression::Integer(2)),
+                            op: BinaryOperator::Asterisk,
+                            rhs: Box::new(Expression::Binary {
+                                lhs: Box::new(Expression::Integer(3)),
+                                op: BinaryOperator::Plus,
+                                rhs: Box::new(Expression::Integer(4)),
+                            }),
+                        }),
+                    }),
+                    op: BinaryOperator::Asterisk,
+                    rhs: Box::new(Expression::Integer(5)),
+                },
             ),
         ];
 

@@ -36,7 +36,7 @@ impl CodeGenerator {
                         Expression::LocalVariable { type_, .. } => {
                             println!("  push {}", type_.size());
                         }
-                        Expression::Integer(_) | Expression::Binary(_) => {
+                        Expression::Integer(_) | Expression::Binary { .. } => {
                             println!("  push 8");
                         }
                         Expression::Unary(u) => match u.op {
@@ -69,39 +69,39 @@ impl CodeGenerator {
                 println!("  call {}", call.callee_name);
                 println!("  push rax");
             }
-            Expression::Binary(bin) => {
-                match bin.op {
-                    BinaryOperator::Plus => match &*bin.lhs {
+            Expression::Binary { lhs, op, rhs } => {
+                match op {
+                    BinaryOperator::Plus => match lhs.as_ref() {
                         Expression::LocalVariable { type_, .. } => match type_ {
                             Type::Pointer(_) => {
-                                self.gen_lval(&*bin.lhs);
-                                self.gen_expr(&*bin.rhs);
+                                self.gen_lval(lhs);
+                                self.gen_expr(rhs);
                                 println!("  pop rax");
                                 println!("  pop rdi");
                                 println!("  imul rax, {}", type_.size());
                                 println!("  add rax, rdi");
                             }
                             _ => {
-                                self.gen_expr(&*bin.lhs);
-                                self.gen_expr(&*bin.rhs);
+                                self.gen_expr(lhs);
+                                self.gen_expr(rhs);
                                 println!("  pop rdi");
                                 println!("  pop rax");
                                 println!("  add rax, rdi");
                             }
                         },
                         _ => {
-                            self.gen_expr(&*bin.lhs);
-                            self.gen_expr(&*bin.rhs);
+                            self.gen_expr(lhs);
+                            self.gen_expr(rhs);
                             println!("  pop rdi");
                             println!("  pop rax");
                             println!("  add rax, rdi");
                         }
                     },
-                    BinaryOperator::Minus => match &*bin.lhs {
+                    BinaryOperator::Minus => match lhs.as_ref() {
                         Expression::LocalVariable { type_, .. } => match type_ {
                             Type::Pointer(_) => {
-                                self.gen_lval(&*bin.lhs);
-                                self.gen_expr(&*bin.rhs);
+                                self.gen_lval(lhs);
+                                self.gen_expr(rhs);
                                 println!("  pop rax");
                                 println!("  pop rdi");
                                 println!("  imul rax, {}", type_.size());
@@ -109,39 +109,39 @@ impl CodeGenerator {
                                 println!("  mov rax, rdi");
                             }
                             _ => {
-                                self.gen_expr(&*bin.lhs);
-                                self.gen_expr(&*bin.rhs);
+                                self.gen_expr(lhs);
+                                self.gen_expr(rhs);
                                 println!("  pop rdi");
                                 println!("  pop rax");
                                 println!("  sub rax, rdi");
                             }
                         },
                         _ => {
-                            self.gen_expr(&*bin.lhs);
-                            self.gen_expr(&*bin.rhs);
+                            self.gen_expr(lhs);
+                            self.gen_expr(rhs);
                             println!("  pop rdi");
                             println!("  pop rax");
                             println!("  sub rax, rdi");
                         }
                     },
                     BinaryOperator::Asterisk => {
-                        self.gen_expr(&*bin.lhs);
-                        self.gen_expr(&*bin.rhs);
+                        self.gen_expr(lhs);
+                        self.gen_expr(rhs);
                         println!("  pop rdi");
                         println!("  pop rax");
                         println!("  imul rax, rdi");
                     }
                     BinaryOperator::Slash => {
-                        self.gen_expr(&*bin.lhs);
-                        self.gen_expr(&*bin.rhs);
+                        self.gen_expr(lhs);
+                        self.gen_expr(rhs);
                         println!("  pop rdi");
                         println!("  pop rax");
                         println!("  cqo");
                         println!("  idiv rdi");
                     }
                     BinaryOperator::Lt => {
-                        self.gen_expr(&*bin.lhs);
-                        self.gen_expr(&*bin.rhs);
+                        self.gen_expr(lhs);
+                        self.gen_expr(rhs);
                         println!("  pop rdi");
                         println!("  pop rax");
                         println!("  cmp rax, rdi");
@@ -149,8 +149,8 @@ impl CodeGenerator {
                         println!("  movzb rax, al");
                     }
                     BinaryOperator::LtEq => {
-                        self.gen_expr(&*bin.lhs);
-                        self.gen_expr(&*bin.rhs);
+                        self.gen_expr(lhs);
+                        self.gen_expr(rhs);
                         println!("  pop rdi");
                         println!("  pop rax");
                         println!("  cmp rax, rdi");
@@ -158,8 +158,8 @@ impl CodeGenerator {
                         println!("  movzb rax, al");
                     }
                     BinaryOperator::Eq => {
-                        self.gen_expr(&*bin.lhs);
-                        self.gen_expr(&*bin.rhs);
+                        self.gen_expr(lhs);
+                        self.gen_expr(rhs);
                         println!("  pop rdi");
                         println!("  pop rax");
                         println!("  cmp rax, rdi");
@@ -167,8 +167,8 @@ impl CodeGenerator {
                         println!("  movzb rax, al");
                     }
                     BinaryOperator::NotEq => {
-                        self.gen_expr(&*bin.lhs);
-                        self.gen_expr(&*bin.rhs);
+                        self.gen_expr(lhs);
+                        self.gen_expr(rhs);
                         println!("  pop rdi");
                         println!("  pop rax");
                         println!("  cmp rax, rdi");
@@ -179,7 +179,7 @@ impl CodeGenerator {
                         println!("  # --start assignment");
 
                         println!("  # --left");
-                        match &*bin.lhs {
+                        match lhs.as_ref() {
                             Expression::Unary(u) => match u.op {
                                 UnaryOperator::Dereference => {
                                     self.gen_expr(&*u.expr);
@@ -189,15 +189,15 @@ impl CodeGenerator {
                                 }
                             },
                             Expression::LocalVariable { .. } => {
-                                self.gen_lval(&*bin.lhs);
+                                self.gen_lval(lhs);
                             }
                             _ => {
-                                panic!("Invalid node: {:?}.\nleft node is not var on assignment expression.", bin.lhs);
+                                panic!("Invalid node: {:?}.\nleft node is not var on assignment expression.", lhs);
                             }
                         }
 
                         println!("  # --right");
-                        self.gen_expr(&*bin.rhs);
+                        self.gen_expr(rhs);
                         println!("  # --assignment");
                         println!("  pop rdi");
                         println!("  pop rax");

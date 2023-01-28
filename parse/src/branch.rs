@@ -49,7 +49,7 @@ impl Parser {
 #[cfg(test)]
 mod test {
     use super::*;
-    use ast::{BinaryExpression, BinaryOperator, Expression, Statement, Type, TypeEnum};
+    use ast::{BinaryOperator, Expression, Statement, Type, TypeEnum};
     use lex::Lexer;
 
     #[test]
@@ -65,15 +65,15 @@ mod test {
                         init: Some(Expression::Integer(0)),
                     },
                     Statement::If {
-                        condition: Expression::Binary(BinaryExpression::new(
-                            Expression::LocalVariable {
+                        condition: Expression::Binary {
+                            lhs: Box::new(Expression::LocalVariable {
                                 name: String::from("a"),
                                 offset: 8,
                                 type_: Type::Primitive(TypeEnum::Int),
-                            },
-                            BinaryOperator::Eq,
-                            Expression::Integer(0),
-                        )),
+                            }),
+                            op: BinaryOperator::Eq,
+                            rhs: Box::new(Expression::Integer(0)),
+                        },
                         consequence: Box::new(Statement::Return(Expression::Integer(0))),
                         alternative: None,
                     },
@@ -89,15 +89,15 @@ mod test {
                         init: Some(Expression::Integer(0)),
                     },
                     Statement::If {
-                        condition: Expression::Binary(BinaryExpression::new(
-                            Expression::LocalVariable {
+                        condition: Expression::Binary {
+                            lhs: Box::new(Expression::LocalVariable {
                                 name: String::from("a"),
                                 offset: 8,
                                 type_: Type::Primitive(TypeEnum::Int),
-                            },
-                            BinaryOperator::Eq,
-                            Expression::Integer(0),
-                        )),
+                            }),
+                            op: BinaryOperator::Eq,
+                            rhs: Box::new(Expression::Integer(0)),
+                        },
                         consequence: Box::new(Statement::Return(Expression::Integer(0))),
                         alternative: Some(Box::new(Statement::Return(Expression::Integer(1)))),
                     },

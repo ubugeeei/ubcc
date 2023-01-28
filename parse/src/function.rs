@@ -63,7 +63,7 @@ impl Parser {
 
 #[cfg(test)]
 mod test {
-    use ast::{BinaryExpression, BinaryOperator, Expression, Type, TypeEnum};
+    use ast::{BinaryOperator, Expression, Type, TypeEnum};
     use lex::Lexer;
 
     use super::*;
@@ -115,11 +115,11 @@ mod test {
             ),
             (
                 String::from("return 5 + 5;"),
-                Statement::Return(Expression::Binary(BinaryExpression::new(
-                    Expression::Integer(5),
-                    BinaryOperator::Plus,
-                    Expression::Integer(5),
-                ))),
+                Statement::Return(Expression::Binary {
+                    lhs: Box::new(Expression::Integer(5)),
+                    op: BinaryOperator::Plus,
+                    rhs: Box::new(Expression::Integer(5)),
+                }),
             ),
         ];
 

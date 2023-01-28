@@ -95,7 +95,7 @@ impl Parser {
 
 #[cfg(test)]
 mod test {
-    use ast::{BinaryExpression, BinaryOperator, Expression, Type, TypeEnum};
+    use ast::{BinaryOperator, Expression, Type, TypeEnum};
     use lex::Lexer;
 
     use super::*;
@@ -112,15 +112,15 @@ mod test {
                     init: Some(Expression::Integer(0)),
                 },
                 Statement::While {
-                    condition: Expression::Binary(BinaryExpression::new(
-                        Expression::LocalVariable {
+                    condition: Expression::Binary {
+                        lhs: Box::new(Expression::LocalVariable {
                             name: String::from("a"),
                             offset: 8,
                             type_: Type::Primitive(TypeEnum::Int),
-                        },
-                        BinaryOperator::Eq,
-                        Expression::Integer(0),
-                    )),
+                        }),
+                        op: BinaryOperator::Eq,
+                        rhs: Box::new(Expression::Integer(0)),
+                    },
                     body: Box::new(Statement::Return(Expression::Integer(0))),
                 },
             ],
@@ -145,45 +145,41 @@ mod test {
                     init: Some(Expression::Integer(0)),
                 },
                 Statement::For {
-                    init: Some(Box::new(Statement::Expression(Expression::Binary(
-                        BinaryExpression::new(
-                            Expression::LocalVariable {
-                                name: String::from("i"),
-                                offset: 8,
-                                type_: Type::Primitive(TypeEnum::Int),
-                            },
-                            BinaryOperator::Assignment,
-                            Expression::Integer(0),
-                        ),
-                    )))),
-                    condition: Some(Expression::Binary(BinaryExpression::new(
-                        Expression::LocalVariable {
+                    init: Some(Box::new(Statement::Expression(Expression::Binary {
+                        lhs: Box::new(Expression::LocalVariable {
                             name: String::from("i"),
                             offset: 8,
                             type_: Type::Primitive(TypeEnum::Int),
-                        },
-                        BinaryOperator::Lt,
-                        Expression::Integer(10),
-                    ))),
-                    post: Some(Box::new(Statement::Expression(Expression::Binary(
-                        BinaryExpression::new(
-                            Expression::LocalVariable {
+                        }),
+                        op: BinaryOperator::Assignment,
+                        rhs: Box::new(Expression::Integer(0)),
+                    }))),
+                    condition: Some(Expression::Binary {
+                        lhs: Box::new(Expression::LocalVariable {
+                            name: String::from("i"),
+                            offset: 8,
+                            type_: Type::Primitive(TypeEnum::Int),
+                        }),
+                        op: BinaryOperator::Lt,
+                        rhs: Box::new(Expression::Integer(10)),
+                    }),
+                    post: Some(Box::new(Statement::Expression(Expression::Binary {
+                        lhs: Box::new(Expression::LocalVariable {
+                            name: String::from("i"),
+                            offset: 8,
+                            type_: Type::Primitive(TypeEnum::Int),
+                        }),
+                        op: BinaryOperator::Assignment,
+                        rhs: Box::new(Expression::Binary {
+                            lhs: Box::new(Expression::LocalVariable {
                                 name: String::from("i"),
                                 offset: 8,
                                 type_: Type::Primitive(TypeEnum::Int),
-                            },
-                            BinaryOperator::Assignment,
-                            Expression::Binary(BinaryExpression::new(
-                                Expression::LocalVariable {
-                                    name: String::from("i"),
-                                    offset: 8,
-                                    type_: Type::Primitive(TypeEnum::Int),
-                                },
-                                BinaryOperator::Plus,
-                                Expression::Integer(1),
-                            )),
-                        ),
-                    )))),
+                            }),
+                            op: BinaryOperator::Plus,
+                            rhs: Box::new(Expression::Integer(1)),
+                        }),
+                    }))),
                     body: Box::new(Statement::Return(Expression::Integer(0))),
                 },
             ],

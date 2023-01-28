@@ -82,7 +82,11 @@ pub enum Expression {
         type_: Type,
     },
     Integer(i32),
-    Binary(BinaryExpression),
+    Binary {
+        lhs: Box<Expression>,
+        op: BinaryOperator,
+        rhs: Box<Expression>,
+    },
     Unary(UnaryExpression),
     Call(CallExpression),
     Index {
@@ -92,22 +96,6 @@ pub enum Expression {
     Array {
         elements: Vec<Expression>,
     },
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub struct BinaryExpression {
-    pub lhs: Box<Expression>,
-    pub op: BinaryOperator,
-    pub rhs: Box<Expression>,
-}
-impl BinaryExpression {
-    pub fn new(lhs: Expression, op: BinaryOperator, rhs: Expression) -> Self {
-        Self {
-            lhs: Box::new(lhs),
-            op,
-            rhs: Box::new(rhs),
-        }
-    }
 }
 
 #[derive(Debug, PartialEq, Eq)]
