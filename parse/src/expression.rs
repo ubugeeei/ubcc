@@ -1,4 +1,4 @@
-use ast::{BinaryOperator, CallExpression, Expression, UnaryOperator};
+use ast::{BinaryOperator, Expression, UnaryOperator};
 use lex::tokens::Token;
 
 use crate::{LVar, Parser, Precedence};
@@ -166,10 +166,10 @@ impl Parser {
 
         self.next_token(); // skip ')'
 
-        Ok(Expression::Call(CallExpression::new(
+        Ok(Expression::Call {
             callee_name,
             arguments,
-        )))
+        })
     }
 
     pub(super) fn perse_index_expression(
@@ -471,14 +471,17 @@ mod test {
         let cases = vec![
             (
                 String::from("foo();"),
-                Expression::Call(CallExpression::new(String::from("foo"), vec![])),
+                Expression::Call {
+                    callee_name: String::from("foo"),
+                    arguments: vec![],
+                },
             ),
             (
                 String::from("bar(1, 2);"),
-                Expression::Call(CallExpression::new(
-                    String::from("bar"),
-                    vec![Expression::Integer(1), Expression::Integer(2)],
-                )),
+                Expression::Call {
+                    callee_name: String::from("bar"),
+                    arguments: vec![Expression::Integer(1), Expression::Integer(2)],
+                },
             ),
         ];
 

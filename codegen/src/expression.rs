@@ -30,9 +30,12 @@ impl CodeGenerator {
                 println!("  mov rax, [rax]");
                 println!("  push rax");
             }
-            Expression::Call(call) => {
-                if call.callee_name == "sizeof" {
-                    match &call.arguments[0] {
+            Expression::Call {
+                callee_name,
+                arguments,
+            } => {
+                if callee_name == "sizeof" {
+                    match &arguments[0] {
                         Expression::LocalVariable { type_, .. } => {
                             println!("  push {}", type_.size());
                         }
@@ -58,15 +61,15 @@ impl CodeGenerator {
                 }
 
                 let registers = ["rdi", "rsi", "rdx", "rcx", "r8d", "r9d"];
-                if call.arguments.len() > registers.len() {
+                if arguments.len() > registers.len() {
                     panic!("too many arguments");
                 }
-                for (i, arg) in call.arguments.iter().enumerate() {
+                for (i, arg) in arguments.iter().enumerate() {
                     self.gen_expr(arg);
                     println!("  pop {}", registers[i]);
                 }
                 println!("  mov rax, 0x0");
-                println!("  call {}", call.callee_name);
+                println!("  call {}", callee_name);
                 println!("  push rax");
             }
             Expression::Binary { lhs, op, rhs } => {

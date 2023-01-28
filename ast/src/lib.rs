@@ -91,7 +91,10 @@ pub enum Expression {
         expr: Box<Expression>,
         op: UnaryOperator,
     },
-    Call(CallExpression),
+    Call {
+        callee_name: String,
+        arguments: Vec<Expression>,
+    },
     Index {
         expr: Box<Expression>,
         index: Box<Expression>,
@@ -122,18 +125,4 @@ pub enum UnaryOperator {
     // Bang,
     // Increment,
     // Decrement,
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub struct CallExpression {
-    pub callee_name: String,
-    pub arguments: Vec<Expression>,
-}
-impl CallExpression {
-    pub fn new(callee_name: String, arguments: Vec<Expression>) -> Self {
-        Self {
-            callee_name,
-            arguments,
-        }
-    }
 }

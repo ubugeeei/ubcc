@@ -141,7 +141,7 @@ impl Parser {
 
 #[cfg(test)]
 mod test {
-    use ast::{BinaryOperator, CallExpression, Expression, TypeEnum, UnaryOperator};
+    use ast::{BinaryOperator, Expression, TypeEnum, UnaryOperator};
 
     use super::*;
 
@@ -166,10 +166,10 @@ mod test {
             (
                 String::from("bar(1, 2); return 0;"),
                 Program::new(vec![
-                    Statement::Expression(Expression::Call(CallExpression::new(
-                        String::from("bar"),
-                        vec![Expression::Integer(1), Expression::Integer(2)],
-                    ))),
+                    Statement::Expression(Expression::Call {
+                        callee_name: String::from("bar"),
+                        arguments: vec![Expression::Integer(1), Expression::Integer(2)],
+                    }),
                     Statement::Return(Expression::Integer(0)),
                 ]),
             ),
@@ -206,10 +206,10 @@ mod test {
                                 name: String::from("a"),
                                 offset: 16,
                                 type_: Type::Primitive(TypeEnum::Int),
-                                init: Some(Expression::Call(CallExpression::new(
-                                    String::from("foo"),
-                                    vec![Expression::Integer(10)],
-                                ))),
+                                init: Some(Expression::Call {
+                                    callee_name: String::from("foo"),
+                                    arguments: vec![Expression::Integer(10)],
+                                }),
                             },
                             Statement::Return(Expression::Integer(10)),
                         ],
@@ -266,9 +266,9 @@ mod test {
                                 type_: Type::Primitive(TypeEnum::Int),
                                 init: Some(Expression::Integer(0)),
                             },
-                            Statement::Expression(Expression::Call(CallExpression::new(
-                                String::from("one"),
-                                vec![Expression::Unary {
+                            Statement::Expression(Expression::Call {
+                                callee_name: String::from("one"),
+                                arguments: vec![Expression::Unary {
                                     expr: Box::new(Expression::LocalVariable {
                                         name: String::from("x"),
                                         offset: 8,
@@ -278,7 +278,7 @@ mod test {
                                     }),
                                     op: UnaryOperator::Reference,
                                 }],
-                            ))),
+                            }),
                             Statement::Return(Expression::LocalVariable {
                                 name: String::from("x"),
                                 offset: 8,
