@@ -1,4 +1,4 @@
-use ast::{BinaryOperator, CallExpression, Expression, UnaryExpression, UnaryOperator};
+use ast::{BinaryOperator, CallExpression, Expression, UnaryOperator};
 use lex::tokens::Token;
 
 use crate::{LVar, Parser, Precedence};
@@ -55,27 +55,27 @@ impl Parser {
         match self.current_token {
             Token::Minus => {
                 self.next_token();
-                let expr = self.parse_expression(Precedence::Product)?;
-                Ok(Expression::Unary(UnaryExpression::new(
+                let expr = Box::new(self.parse_expression(Precedence::Product)?);
+                Ok(Expression::Unary {
                     expr,
-                    UnaryOperator::Minus,
-                )))
+                    op: UnaryOperator::Minus,
+                })
             }
             Token::Asterisk => {
                 self.next_token();
-                let expr = self.parse_expression(Precedence::Product)?;
-                Ok(Expression::Unary(UnaryExpression::new(
+                let expr = Box::new(self.parse_expression(Precedence::Product)?);
+                Ok(Expression::Unary {
                     expr,
-                    UnaryOperator::Dereference,
-                )))
+                    op: UnaryOperator::Dereference,
+                })
             }
             Token::Ampersand => {
                 self.next_token();
-                let expr = self.parse_expression(Precedence::Product)?;
-                Ok(Expression::Unary(UnaryExpression::new(
+                let expr = Box::new(self.parse_expression(Precedence::Product)?);
+                Ok(Expression::Unary {
                     expr,
-                    UnaryOperator::Reference,
-                )))
+                    op: UnaryOperator::Reference,
+                })
             }
             _ => unreachable!(),
         }
@@ -224,10 +224,10 @@ mod test {
             (String::from("10"), Expression::Integer(10)),
             (
                 String::from("-10"),
-                Expression::Unary(UnaryExpression::new(
-                    Expression::Integer(10),
-                    UnaryOperator::Minus,
-                )),
+                Expression::Unary {
+                    expr: Box::new(Expression::Integer(10)),
+                    op: UnaryOperator::Minus,
+                },
             ),
         ];
 
@@ -246,17 +246,17 @@ mod test {
         let cases = vec![
             (
                 String::from("&5"),
-                Expression::Unary(UnaryExpression::new(
-                    Expression::Integer(5),
-                    UnaryOperator::Reference,
-                )),
+                Expression::Unary {
+                    expr: Box::new(Expression::Integer(5)),
+                    op: UnaryOperator::Reference,
+                },
             ),
             (
                 String::from("*5"),
-                Expression::Unary(UnaryExpression::new(
-                    Expression::Integer(5),
-                    UnaryOperator::Dereference,
-                )),
+                Expression::Unary {
+                    expr: Box::new(Expression::Integer(5)),
+                    op: UnaryOperator::Dereference,
+                },
             ),
         ];
 
@@ -309,10 +309,10 @@ mod test {
             (
                 String::from("-5 + 5"),
                 Expression::Binary {
-                    lhs: Box::new(Expression::Unary(UnaryExpression::new(
-                        Expression::Integer(5),
-                        UnaryOperator::Minus,
-                    ))),
+                    lhs: Box::new(Expression::Unary {
+                        expr: Box::new(Expression::Integer(5)),
+                        op: UnaryOperator::Minus,
+                    }),
                     op: BinaryOperator::Plus,
                     rhs: Box::new(Expression::Integer(5)),
                 },
@@ -322,10 +322,10 @@ mod test {
                 Expression::Binary {
                     lhs: Box::new(Expression::Integer(5)),
                     op: BinaryOperator::Plus,
-                    rhs: Box::new(Expression::Unary(UnaryExpression::new(
-                        Expression::Integer(5),
-                        UnaryOperator::Minus,
-                    ))),
+                    rhs: Box::new(Expression::Unary {
+                        expr: Box::new(Expression::Integer(5)),
+                        op: UnaryOperator::Minus,
+                    }),
                 },
             ),
         ];

@@ -141,9 +141,7 @@ impl Parser {
 
 #[cfg(test)]
 mod test {
-    use ast::{
-        BinaryOperator, CallExpression, Expression, TypeEnum, UnaryExpression, UnaryOperator,
-    };
+    use ast::{BinaryOperator, CallExpression, Expression, TypeEnum, UnaryOperator};
 
     use super::*;
 
@@ -242,16 +240,16 @@ mod test {
                         }],
                         body: vec![
                             Statement::Expression(Expression::Binary {
-                                lhs: Box::new(Expression::Unary(UnaryExpression::new(
-                                    Expression::LocalVariable {
+                                lhs: Box::new(Expression::Unary {
+                                    expr: Box::new(Expression::LocalVariable {
                                         name: String::from("x"),
                                         offset: 8,
                                         type_: Type::Pointer(Box::new(Type::Primitive(
                                             TypeEnum::Int,
                                         ))),
-                                    },
-                                    UnaryOperator::Dereference,
-                                ))),
+                                    }),
+                                    op: UnaryOperator::Dereference,
+                                }),
                                 op: BinaryOperator::Assignment,
                                 rhs: Box::new(Expression::Integer(1)),
                             }),
@@ -270,16 +268,16 @@ mod test {
                             },
                             Statement::Expression(Expression::Call(CallExpression::new(
                                 String::from("one"),
-                                vec![Expression::Unary(UnaryExpression::new(
-                                    Expression::LocalVariable {
+                                vec![Expression::Unary {
+                                    expr: Box::new(Expression::LocalVariable {
                                         name: String::from("x"),
                                         offset: 8,
                                         type_: Type::Pointer(Box::new(Type::Primitive(
                                             TypeEnum::Int,
                                         ))),
-                                    },
-                                    UnaryOperator::Reference,
-                                ))],
+                                    }),
+                                    op: UnaryOperator::Reference,
+                                }],
                             ))),
                             Statement::Return(Expression::LocalVariable {
                                 name: String::from("x"),

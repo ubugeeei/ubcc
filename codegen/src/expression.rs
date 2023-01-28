@@ -8,17 +8,17 @@ impl CodeGenerator {
             Expression::Integer(int) => {
                 println!("  push {}", int);
             }
-            Expression::Unary(unary) => match unary.op {
+            Expression::Unary { expr, op } => match op {
                 UnaryOperator::Minus => {
-                    self.gen_expr(&*unary.expr);
+                    self.gen_expr(expr);
                     println!("  pop rax");
                     println!("  neg rax");
                 }
                 UnaryOperator::Reference => {
-                    self.gen_lval(&*unary.expr);
+                    self.gen_lval(expr);
                 }
                 UnaryOperator::Dereference => {
-                    self.gen_expr(&*unary.expr);
+                    self.gen_expr(expr);
                     println!("  pop rax");
                     println!("  mov rax, [rax]");
                     println!("  push rax");
@@ -39,11 +39,11 @@ impl CodeGenerator {
                         Expression::Integer(_) | Expression::Binary { .. } => {
                             println!("  push 8");
                         }
-                        Expression::Unary(u) => match u.op {
+                        Expression::Unary { expr, op } => match op {
                             UnaryOperator::Reference => {
                                 println!("  push 8");
                             }
-                            UnaryOperator::Dereference => match &*u.expr {
+                            UnaryOperator::Dereference => match expr.as_ref() {
                                 Expression::LocalVariable { type_, .. } => {
                                     println!("  push {}", type_.size());
                                 }
@@ -180,12 +180,12 @@ impl CodeGenerator {
 
                         println!("  # --left");
                         match lhs.as_ref() {
-                            Expression::Unary(u) => match u.op {
+                            Expression::Unary { expr, op } => match op {
                                 UnaryOperator::Dereference => {
-                                    self.gen_expr(&*u.expr);
+                                    self.gen_expr(expr);
                                 }
                                 _ => {
-                                    panic!("Invalid node: {:?}.\nleft node is not var on assignment expression.", u);
+                                    panic!("Invalid node: {:?}.\nleft node is not var on assignment expression.", expr);
                                 }
                             },
                             Expression::LocalVariable { .. } => {

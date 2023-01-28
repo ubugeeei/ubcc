@@ -87,7 +87,10 @@ pub enum Expression {
         op: BinaryOperator,
         rhs: Box<Expression>,
     },
-    Unary(UnaryExpression),
+    Unary {
+        expr: Box<Expression>,
+        op: UnaryOperator,
+    },
     Call(CallExpression),
     Index {
         expr: Box<Expression>,
@@ -109,21 +112,6 @@ pub enum BinaryOperator {
     LtEq,
     Eq,
     NotEq,
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub struct UnaryExpression {
-    pub expr: Box<Expression>,
-    pub op: UnaryOperator,
-    // prefix: bool,
-}
-impl UnaryExpression {
-    pub fn new(expr: Expression, op: UnaryOperator) -> Self {
-        Self {
-            expr: Box::new(expr),
-            op,
-        }
-    }
 }
 
 #[derive(Debug, PartialEq, Eq)]
