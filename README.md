@@ -4,7 +4,10 @@ A toy C CodeGenerator implemented by Rust.
 
 ### Usage
 ```sh
-make image
+# first time
+make
+
+# build and testing
 make build
 make e2e
 ```

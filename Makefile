@@ -1,3 +1,8 @@
+default:
+	- make image
+	- make build
+	- make e2e
+
 image:
 	- docker build -t compilerbook https://www.sigbus.info/compilerbook/Dockerfile
 
