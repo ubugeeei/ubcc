@@ -28,24 +28,12 @@ pub enum Statement {
     },
     Block(Vec<Statement>),
     Return(Expression),
-    FunctionDefinition(FunctionDefinition),
+    FunctionDefinition {
+        name: String,
+        arguments: Vec<Expression>, // Expression::LocalVariable
+        body: Vec<Statement>,
+    },
     InitDeclaration(InitDeclaration),
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub struct FunctionDefinition {
-    pub name: String,
-    pub arguments: Vec<Expression>, // Expression::LocalVariable
-    pub body: Vec<Statement>,
-}
-impl FunctionDefinition {
-    pub fn new(name: String, arguments: Vec<Expression>, body: Vec<Statement>) -> Self {
-        Self {
-            name,
-            arguments,
-            body,
-        }
-    }
 }
 
 #[derive(Debug, PartialEq, Eq)]

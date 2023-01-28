@@ -142,8 +142,8 @@ impl Parser {
 #[cfg(test)]
 mod test {
     use ast::{
-        BinaryExpression, BinaryOperator, CallExpression, Expression, FunctionDefinition,
-        InitDeclaration, TypeEnum, UnaryExpression, UnaryOperator,
+        BinaryExpression, BinaryOperator, CallExpression, Expression, InitDeclaration, TypeEnum,
+        UnaryExpression, UnaryOperator,
     };
 
     use super::*;
@@ -188,23 +188,23 @@ mod test {
                         }"#,
                 ),
                 Program::new(vec![
-                    Statement::FunctionDefinition(FunctionDefinition::new(
-                        String::from("foo"),
-                        vec![Expression::LocalVariable {
+                    Statement::FunctionDefinition {
+                        name: String::from("foo"),
+                        arguments: vec![Expression::LocalVariable {
                             name: String::from("i"),
                             offset: 8,
                             type_: Type::Primitive(TypeEnum::Int),
                         }],
-                        vec![Statement::Return(Expression::LocalVariable {
+                        body: vec![Statement::Return(Expression::LocalVariable {
                             name: String::from("i"),
                             offset: 8,
                             type_: Type::Primitive(TypeEnum::Int),
                         })],
-                    )),
-                    Statement::FunctionDefinition(FunctionDefinition::new(
-                        String::from("main"),
-                        vec![],
-                        vec![
+                    },
+                    Statement::FunctionDefinition {
+                        name: String::from("main"),
+                        arguments: vec![],
+                        body: vec![
                             Statement::InitDeclaration(InitDeclaration::new(
                                 String::from("a"),
                                 16,
@@ -216,7 +216,7 @@ mod test {
                             )),
                             Statement::Return(Expression::Integer(10)),
                         ],
-                    )),
+                    },
                 ]),
             ),
             (
@@ -234,14 +234,14 @@ mod test {
                     "#,
                 ),
                 Program::new(vec![
-                    Statement::FunctionDefinition(FunctionDefinition::new(
-                        String::from("one"),
-                        vec![Expression::LocalVariable {
+                    Statement::FunctionDefinition {
+                        name: String::from("one"),
+                        arguments: vec![Expression::LocalVariable {
                             name: String::from("x"),
                             offset: 8,
                             type_: Type::Pointer(Box::new(Type::Primitive(TypeEnum::Int))),
                         }],
-                        vec![
+                        body: vec![
                             Statement::Expression(Expression::Binary(BinaryExpression::new(
                                 Expression::Unary(UnaryExpression::new(
                                     Expression::LocalVariable {
@@ -258,11 +258,11 @@ mod test {
                             ))),
                             Statement::Return(Expression::Integer(0)),
                         ],
-                    )),
-                    Statement::FunctionDefinition(FunctionDefinition::new(
-                        String::from("main"),
-                        vec![],
-                        vec![
+                    },
+                    Statement::FunctionDefinition {
+                        name: String::from("main"),
+                        arguments: vec![],
+                        body: vec![
                             Statement::InitDeclaration(InitDeclaration::new(
                                 String::from("x"),
                                 16,
@@ -288,7 +288,7 @@ mod test {
                                 type_: Type::Pointer(Box::new(Type::Primitive(TypeEnum::Int))),
                             }),
                         ],
-                    )),
+                    },
                 ]),
             ),
         ];

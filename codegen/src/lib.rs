@@ -55,9 +55,11 @@ impl CodeGenerator {
             Statement::Block(stmts) => self.gen_stmts(stmts),
             Statement::Expression(expr) => self.gen_expr(expr),
             Statement::Return(expr) => self.gen_return(expr),
-            Statement::FunctionDefinition(function_def) => {
-                self.gen_function_definition(function_def)
-            }
+            Statement::FunctionDefinition {
+                name,
+                arguments,
+                body,
+            } => self.gen_function_definition(name, arguments, body),
             Statement::InitDeclaration(init_decl) => self.gen_init_declaration(init_decl),
         }
     }

@@ -1,31 +1,36 @@
-use ast::{FunctionDefinition, Expression};
+use ast::{Expression, Statement};
 
 use crate::CodeGenerator;
 
 impl CodeGenerator {
-    pub(super) fn gen_function_definition(&self, function_def: &FunctionDefinition) {
+    pub(super) fn gen_function_definition(
+        &self,
+        name: &String,
+        arguments: &Vec<Expression>, // Expression::LocalVariable
+        body: &Vec<Statement>,
+    ) {
         println!("# ====== function definition ======");
-        println!("{}:", function_def.name);
+        println!("{}:", name);
         println!("  # prologue");
         println!("  push rbp");
         println!("  mov rbp, rsp");
         println!("");
         println!("  # arguments");
         let registers = ["rdi", "rsi", "rdx", "rcx", "r8d", "r9d"];
-        for (i, arg) in function_def.arguments.iter().enumerate() {
+        for (i, arg) in arguments.iter().enumerate() {
             let offset = match arg {
                 Expression::LocalVariable { offset, .. } => offset,
                 _ => panic!("invalid argument"),
             };
             println!("  mov [rbp-{}], {}", offset, registers[i]);
         }
-        if function_def.arguments.len() == 0 {
+        if arguments.len() == 0 {
             println!("    # --");
         }
         println!("");
 
         println!("  # body");
-        self.gen_stmts(&function_def.body);
+        self.gen_stmts(body);
         println!("");
     }
 

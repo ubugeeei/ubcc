@@ -1,11 +1,11 @@
-use ast::{FunctionDefinition, Statement};
+use ast::Statement;
 use lex::tokens::Token;
 
 use crate::{Parser, Precedence};
 
 impl Parser {
     pub(crate) fn parse_function_declaration(&mut self, name: String) -> Result<Statement, String> {
-        let mut params = Vec::new();
+        let mut arguments = Vec::new();
         while self.peeked_token != Token::RParen {
             self.next_token();
             let (type_, name) = self.parse_type_declaration()?;
@@ -14,7 +14,7 @@ impl Parser {
                 self.next_token();
             }
 
-            params.push((type_, name));
+            arguments.push((type_, name));
         }
 
         if self.peeked_token == Token::RParen {
@@ -27,7 +27,7 @@ impl Parser {
             ));
         }
 
-        let params = params
+        let arguments = arguments
             .iter()
             .map(|(t, name)| self.new_local_var(t.clone(), name.clone()))
             .collect::<Result<Vec<_>, _>>()?;
@@ -37,9 +37,11 @@ impl Parser {
             _ => unreachable!(),
         };
 
-        Ok(Statement::FunctionDefinition(FunctionDefinition::new(
-            name, params, body,
-        )))
+        Ok(Statement::FunctionDefinition {
+            name,
+            arguments,
+            body,
+        })
     }
 
     pub(crate) fn parse_return_statement(&mut self) -> Result<Statement, String> {
@@ -71,17 +73,17 @@ mod test {
         let cases = vec![
             (
                 String::from("int foo() { return 0; }"),
-                Statement::FunctionDefinition(FunctionDefinition::new(
-                    String::from("foo"),
-                    vec![],
-                    vec![Statement::Return(Expression::Integer(0))],
-                )),
+                Statement::FunctionDefinition {
+                    name: String::from("foo"),
+                    arguments: vec![],
+                    body: vec![Statement::Return(Expression::Integer(0))],
+                },
             ),
             (
                 String::from("int foo(int a, int b) { return 0; }"),
-                Statement::FunctionDefinition(FunctionDefinition::new(
-                    String::from("foo"),
-                    vec![
+                Statement::FunctionDefinition {
+                    name: String::from("foo"),
+                    arguments: vec![
                         Expression::LocalVariable {
                             name: String::from("a"),
                             offset: 8,
@@ -93,8 +95,8 @@ mod test {
                             type_: Type::Primitive(TypeEnum::Int),
                         },
                     ],
-                    vec![Statement::Return(Expression::Integer(0))],
-                )),
+                    body: vec![Statement::Return(Expression::Integer(0))],
+                },
             ),
         ];
         for (input, expected) in cases {
