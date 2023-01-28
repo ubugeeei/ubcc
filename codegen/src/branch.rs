@@ -1,4 +1,4 @@
-use ast::{Expression, Statement, WhileStatement};
+use ast::{Expression, Statement};
 
 use crate::CodeGenerator;
 
@@ -38,16 +38,16 @@ impl CodeGenerator {
         println!("");
     }
 
-    pub(super) fn gen_while(&self, while_stmt: &WhileStatement) {
+    pub(super) fn gen_while(&self, condition: &Expression, body: &Box<Statement>) {
         println!("# -- start while");
         let label_begin = format!(".Lbegin{}", rand::random::<u32>());
         let label_end = format!(".Lend{}", rand::random::<u32>());
         println!("{label_begin}:");
-        self.gen_expr(&while_stmt.condition);
+        self.gen_expr(condition);
         println!("  pop rax");
         println!("  cmp rax, 0");
         println!("  je {label_end}");
-        self.gen_stmt(&*while_stmt.body);
+        self.gen_stmt(body);
         println!("  jmp {label_begin}");
         println!("{label_end}:");
         println!("# -- end while");

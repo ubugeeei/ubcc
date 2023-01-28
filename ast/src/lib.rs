@@ -16,33 +16,15 @@ pub enum Statement {
         consequence: Box<Statement>,
         alternative: Option<Box<Statement>>,
     },
-    While(WhileStatement),
+    While {
+        condition: Expression,
+        body: Box<Statement>,
+    },
     For(ForStatement),
     Block(Vec<Statement>),
     Return(Expression),
     FunctionDefinition(FunctionDefinition),
     InitDeclaration(InitDeclaration),
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub struct IfStatement {
-    pub condition: Expression,
-    pub consequence: Box<Statement>,
-    pub alternative: Option<Box<Statement>>,
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub struct WhileStatement {
-    pub condition: Expression,
-    pub body: Box<Statement>,
-}
-impl WhileStatement {
-    pub fn new(condition: Expression, body: Statement) -> Self {
-        Self {
-            condition,
-            body: Box::new(body),
-        }
-    }
 }
 
 #[derive(Debug, PartialEq, Eq)]

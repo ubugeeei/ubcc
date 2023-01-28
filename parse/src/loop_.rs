@@ -1,4 +1,4 @@
-use ast::{ForStatement, Statement, WhileStatement};
+use ast::{ForStatement, Statement};
 use lex::tokens::Token;
 
 use crate::{Parser, Precedence};
@@ -28,8 +28,8 @@ impl Parser {
             ));
         }
 
-        let body = self.parse_statement()?;
-        Ok(Statement::While(WhileStatement::new(condition, body)))
+        let body = Box::new(self.parse_statement()?);
+        Ok(Statement::While { condition, body })
     }
 
     pub(super) fn parse_for_statement(&mut self) -> Result<Statement, String> {
@@ -108,8 +108,8 @@ mod test {
                     Type::Primitive(TypeEnum::Int),
                     Some(Expression::Integer(0)),
                 )),
-                Statement::While(WhileStatement::new(
-                    Expression::Binary(BinaryExpression::new(
+                Statement::While {
+                    condition: Expression::Binary(BinaryExpression::new(
                         Expression::LocalVariable {
                             name: String::from("a"),
                             offset: 8,
@@ -118,8 +118,8 @@ mod test {
                         BinaryOperator::Eq,
                         Expression::Integer(0),
                     )),
-                    Statement::Return(Expression::Integer(0)),
-                )),
+                    body: Box::new(Statement::Return(Expression::Integer(0))),
+                },
             ],
         )];
 
