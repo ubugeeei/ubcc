@@ -1,12 +1,18 @@
-use ast::{Expression, InitDeclaration};
+use ast::{Expression, Type};
 
 use crate::CodeGenerator;
 
 impl CodeGenerator {
-    pub(super) fn gen_init_declaration(&self, init_decl: &InitDeclaration) {
-        println!("  # -- init declaration {}", init_decl.name);
-        self.gen_init_lval(init_decl.offset);
-        match init_decl.init {
+    pub(super) fn gen_init_declaration(
+        &self,
+        name: &String,
+        offset: &usize,
+        _type_: &Type,
+        init: &Option<Expression>,
+    ) {
+        println!("  # -- init declaration {}", name);
+        self.gen_init_lval(*offset);
+        match init {
             Some(ref init) => self.gen_expr(init),
             None => {
                 println!("  push rax");

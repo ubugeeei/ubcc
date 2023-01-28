@@ -60,7 +60,12 @@ impl CodeGenerator {
                 arguments,
                 body,
             } => self.gen_function_definition(name, arguments, body),
-            Statement::InitDeclaration(init_decl) => self.gen_init_declaration(init_decl),
+            Statement::InitDeclaration {
+                name,
+                offset,
+                type_,
+                init,
+            } => self.gen_init_declaration(name, offset, type_, init),
         }
     }
 }

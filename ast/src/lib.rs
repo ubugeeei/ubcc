@@ -33,25 +33,12 @@ pub enum Statement {
         arguments: Vec<Expression>, // Expression::LocalVariable
         body: Vec<Statement>,
     },
-    InitDeclaration(InitDeclaration),
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub struct InitDeclaration {
-    pub name: String,
-    pub offset: usize,
-    pub type_: Type,
-    pub init: Option<Expression>,
-}
-impl InitDeclaration {
-    pub fn new(name: String, offset: usize, type_: Type, init: Option<Expression>) -> Self {
-        Self {
-            name,
-            offset,
-            type_,
-            init,
-        }
-    }
+    InitDeclaration {
+        name: String,
+        offset: usize,
+        type_: Type,
+        init: Option<Expression>,
+    },
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]

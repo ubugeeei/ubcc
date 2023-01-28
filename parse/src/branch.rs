@@ -49,9 +49,7 @@ impl Parser {
 #[cfg(test)]
 mod test {
     use super::*;
-    use ast::{
-        BinaryExpression, BinaryOperator, Expression, InitDeclaration, Statement, Type, TypeEnum,
-    };
+    use ast::{BinaryExpression, BinaryOperator, Expression, Statement, Type, TypeEnum};
     use lex::Lexer;
 
     #[test]
@@ -60,12 +58,12 @@ mod test {
             (
                 String::from("int a = 0; if (a == 0) return 0; "),
                 vec![
-                    Statement::InitDeclaration(InitDeclaration::new(
-                        String::from("a"),
-                        8,
-                        Type::Primitive(TypeEnum::Int),
-                        Some(Expression::Integer(0)),
-                    )),
+                    Statement::InitDeclaration {
+                        name: String::from("a"),
+                        offset: 8,
+                        type_: Type::Primitive(TypeEnum::Int),
+                        init: Some(Expression::Integer(0)),
+                    },
                     Statement::If {
                         condition: Expression::Binary(BinaryExpression::new(
                             Expression::LocalVariable {
@@ -84,12 +82,12 @@ mod test {
             (
                 String::from("int a = 0; if (a == 0) return 0; else return 1;"),
                 vec![
-                    Statement::InitDeclaration(InitDeclaration::new(
-                        String::from("a"),
-                        8,
-                        Type::Primitive(TypeEnum::Int),
-                        Some(Expression::Integer(0)),
-                    )),
+                    Statement::InitDeclaration {
+                        name: String::from("a"),
+                        offset: 8,
+                        type_: Type::Primitive(TypeEnum::Int),
+                        init: Some(Expression::Integer(0)),
+                    },
                     Statement::If {
                         condition: Expression::Binary(BinaryExpression::new(
                             Expression::LocalVariable {

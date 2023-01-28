@@ -95,7 +95,7 @@ impl Parser {
 
 #[cfg(test)]
 mod test {
-    use ast::{BinaryExpression, BinaryOperator, Expression, InitDeclaration, Type, TypeEnum};
+    use ast::{BinaryExpression, BinaryOperator, Expression, Type, TypeEnum};
     use lex::Lexer;
 
     use super::*;
@@ -105,12 +105,12 @@ mod test {
         let cases = vec![(
             String::from("int a = 0; while (a == 0) return 0;"),
             vec![
-                Statement::InitDeclaration(InitDeclaration::new(
-                    String::from("a"),
-                    8,
-                    Type::Primitive(TypeEnum::Int),
-                    Some(Expression::Integer(0)),
-                )),
+                Statement::InitDeclaration {
+                    name: String::from("a"),
+                    offset: 8,
+                    type_: Type::Primitive(TypeEnum::Int),
+                    init: Some(Expression::Integer(0)),
+                },
                 Statement::While {
                     condition: Expression::Binary(BinaryExpression::new(
                         Expression::LocalVariable {
@@ -138,12 +138,12 @@ mod test {
         let cases = vec![(
             String::from("int i = 0; for (i = 0; i < 10; i = i + 1) return 0;"),
             vec![
-                Statement::InitDeclaration(InitDeclaration::new(
-                    String::from("i"),
-                    8,
-                    Type::Primitive(TypeEnum::Int),
-                    Some(Expression::Integer(0)),
-                )),
+                Statement::InitDeclaration {
+                    name: String::from("i"),
+                    offset: 8,
+                    type_: Type::Primitive(TypeEnum::Int),
+                    init: Some(Expression::Integer(0)),
+                },
                 Statement::For {
                     init: Some(Box::new(Statement::Expression(Expression::Binary(
                         BinaryExpression::new(

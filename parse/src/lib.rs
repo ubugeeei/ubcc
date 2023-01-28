@@ -142,8 +142,8 @@ impl Parser {
 #[cfg(test)]
 mod test {
     use ast::{
-        BinaryExpression, BinaryOperator, CallExpression, Expression, InitDeclaration, TypeEnum,
-        UnaryExpression, UnaryOperator,
+        BinaryExpression, BinaryOperator, CallExpression, Expression, TypeEnum, UnaryExpression,
+        UnaryOperator,
     };
 
     use super::*;
@@ -205,15 +205,15 @@ mod test {
                         name: String::from("main"),
                         arguments: vec![],
                         body: vec![
-                            Statement::InitDeclaration(InitDeclaration::new(
-                                String::from("a"),
-                                16,
-                                Type::Primitive(TypeEnum::Int),
-                                Some(Expression::Call(CallExpression::new(
+                            Statement::InitDeclaration {
+                                name: String::from("a"),
+                                offset: 16,
+                                type_: Type::Primitive(TypeEnum::Int),
+                                init: Some(Expression::Call(CallExpression::new(
                                     String::from("foo"),
                                     vec![Expression::Integer(10)],
                                 ))),
-                            )),
+                            },
                             Statement::Return(Expression::Integer(10)),
                         ],
                     },
@@ -263,12 +263,12 @@ mod test {
                         name: String::from("main"),
                         arguments: vec![],
                         body: vec![
-                            Statement::InitDeclaration(InitDeclaration::new(
-                                String::from("x"),
-                                16,
-                                Type::Primitive(TypeEnum::Int),
-                                Some(Expression::Integer(0)),
-                            )),
+                            Statement::InitDeclaration {
+                                name: String::from("x"),
+                                offset: 16,
+                                type_: Type::Primitive(TypeEnum::Int),
+                                init: Some(Expression::Integer(0)),
+                            },
                             Statement::Expression(Expression::Call(CallExpression::new(
                                 String::from("one"),
                                 vec![Expression::Unary(UnaryExpression::new(
@@ -311,12 +311,12 @@ mod test {
             (
                 String::from("{ int i = 0; i = i + 1; return 0; }"),
                 Statement::Block(vec![
-                    Statement::InitDeclaration(InitDeclaration::new(
-                        String::from("i"),
-                        8,
-                        Type::Primitive(TypeEnum::Int),
-                        Some(Expression::Integer(0)),
-                    )),
+                    Statement::InitDeclaration {
+                        name: String::from("i"),
+                        offset: 8,
+                        type_: Type::Primitive(TypeEnum::Int),
+                        init: Some(Expression::Integer(0)),
+                    },
                     Statement::Expression(Expression::Binary(BinaryExpression::new(
                         Expression::LocalVariable {
                             name: String::from("i"),

@@ -1,4 +1,4 @@
-use ast::{Expression, InitDeclaration, Statement, Type, TypeEnum};
+use ast::{Expression, Statement, Type, TypeEnum};
 use lex::tokens::Token;
 
 use crate::{LVar, Parser, Precedence};
@@ -14,7 +14,7 @@ impl Parser {
             _ => unreachable!(),
         };
 
-        let init_expr = match self.current_token {
+        let init = match self.current_token {
             Token::SemiColon => None,
             Token::Assignment => {
                 self.next_token();
@@ -30,9 +30,12 @@ impl Parser {
             }
         };
 
-        Ok(Statement::InitDeclaration(InitDeclaration::new(
-            name, offset, type_, init_expr,
-        )))
+        Ok(Statement::InitDeclaration {
+            name,
+            offset,
+            type_,
+            init,
+        })
     }
     pub(super) fn new_local_var(
         &mut self,
@@ -120,41 +123,41 @@ mod test {
         let cases = vec![
             (
                 String::from("int a = 0;"),
-                Statement::InitDeclaration(InitDeclaration::new(
-                    String::from("a"),
-                    8,
-                    Type::Primitive(TypeEnum::Int),
-                    Some(Expression::Integer(0)),
-                )),
+                Statement::InitDeclaration {
+                    name: String::from("a"),
+                    offset: 8,
+                    type_: Type::Primitive(TypeEnum::Int),
+                    init: Some(Expression::Integer(0)),
+                },
             ),
             (
                 String::from("int i;"),
-                Statement::InitDeclaration(InitDeclaration::new(
-                    String::from("i"),
-                    8,
-                    Type::Primitive(TypeEnum::Int),
-                    None,
-                )),
+                Statement::InitDeclaration {
+                    name: String::from("i"),
+                    offset: 8,
+                    type_: Type::Primitive(TypeEnum::Int),
+                    init: None,
+                },
             ),
             (
                 String::from("int *i;"),
-                Statement::InitDeclaration(InitDeclaration::new(
-                    String::from("i"),
-                    8,
-                    Type::Pointer(Box::new(Type::Primitive(TypeEnum::Int))),
-                    None,
-                )),
+                Statement::InitDeclaration {
+                    name: String::from("i"),
+                    offset: 8,
+                    type_: Type::Pointer(Box::new(Type::Primitive(TypeEnum::Int))),
+                    init: None,
+                },
             ),
             (
                 String::from("int **i;"),
-                Statement::InitDeclaration(InitDeclaration::new(
-                    String::from("i"),
-                    8,
-                    Type::Pointer(Box::new(Type::Pointer(Box::new(Type::Primitive(
+                Statement::InitDeclaration {
+                    name: String::from("i"),
+                    offset: 8,
+                    type_: Type::Pointer(Box::new(Type::Pointer(Box::new(Type::Primitive(
                         TypeEnum::Int,
                     ))))),
-                    None,
-                )),
+                    init: None,
+                },
             ),
         ];
 
@@ -170,42 +173,42 @@ mod test {
         let cases = vec![
             (
                 String::from("int a[10];"),
-                vec![Statement::InitDeclaration(InitDeclaration::new(
-                    String::from("a"),
-                    80,
-                    Type::Array {
+                vec![Statement::InitDeclaration {
+                    name: String::from("a"),
+                    offset: 80,
+                    type_: Type::Array {
                         type_: Box::new(Type::Primitive(TypeEnum::Int)),
                         size: 10,
                     },
-                    None,
-                ))],
+                    init: None,
+                }],
             ),
             (
                 String::from("int a[5][10];"),
-                vec![Statement::InitDeclaration(InitDeclaration::new(
-                    String::from("a"),
-                    80,
-                    Type::Array {
+                vec![Statement::InitDeclaration {
+                    name: String::from("a"),
+                    offset: 80,
+                    type_: Type::Array {
                         type_: Box::new(Type::Array {
                             type_: Box::new(Type::Primitive(TypeEnum::Int)),
                             size: 5,
                         }),
                         size: 10,
                     },
-                    None,
-                ))],
+                    init: None,
+                }],
             ),
             (
                 String::from("int *a[10];"),
-                vec![Statement::InitDeclaration(InitDeclaration::new(
-                    String::from("a"),
-                    8,
-                    Type::Pointer(Box::new(Type::Array {
+                vec![Statement::InitDeclaration {
+                    name: String::from("a"),
+                    offset: 8,
+                    type_: Type::Pointer(Box::new(Type::Array {
                         type_: Box::new(Type::Primitive(TypeEnum::Int)),
                         size: 10,
                     })),
-                    None,
-                ))],
+                    init: None,
+                }],
             ),
         ];
 

@@ -206,7 +206,7 @@ impl Parser {
 
 #[cfg(test)]
 mod test {
-    use ast::{InitDeclaration, Statement, Type, TypeEnum};
+    use ast::{Statement, Type, TypeEnum};
     use lex::Lexer;
 
     use super::*;
@@ -491,15 +491,15 @@ mod test {
         let cases = vec![(
             String::from("int foo[3]; foo[1];"),
             vec![
-                Statement::InitDeclaration(InitDeclaration::new(
-                    String::from("foo"),
-                    24,
-                    Type::Array {
+                Statement::InitDeclaration {
+                    name: String::from("foo"),
+                    offset: 24,
+                    type_: Type::Array {
                         type_: Box::new(Type::Primitive(TypeEnum::Int)),
                         size: 3,
                     },
-                    None,
-                )),
+                    init: None,
+                },
                 Statement::Expression(Expression::Index {
                     expr: Box::new(Expression::LocalVariable {
                         name: String::from("foo"),
@@ -525,21 +525,21 @@ mod test {
     fn test_parse_array_expression() {
         let cases = vec![(
             String::from("int array[3] = { 1, 2, 3 };"),
-            Statement::InitDeclaration(InitDeclaration::new(
-                String::from("array"),
-                24,
-                Type::Array {
+            Statement::InitDeclaration {
+                name: String::from("array"),
+                offset: 24,
+                type_: Type::Array {
                     type_: Box::new(Type::Primitive(TypeEnum::Int)),
                     size: 3,
                 },
-                Some(Expression::Array {
+                init: Some(Expression::Array {
                     elements: vec![
                         Expression::Integer(1),
                         Expression::Integer(2),
                         Expression::Integer(3),
                     ],
                 }),
-            )),
+            },
         )];
 
         for (input, expected) in cases {
