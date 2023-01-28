@@ -8,9 +8,8 @@ mod loop_;
 mod variable;
 
 // entry
-pub fn parse(input: String) -> Result<Program, String> {
-    let lexer = Lexer::new(input);
-    let mut parser = Parser::new(lexer);
+pub fn parse(input: Lexer) -> Result<Program, String> {
+    let mut parser = Parser::new(input);
     parser.parse()
 }
 

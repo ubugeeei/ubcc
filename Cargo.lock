@@ -22,6 +22,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "core"
+version = "0.1.0"
+dependencies = [
+ "ast",
+ "codegen",
+ "lex",
+ "parse",
+]
+
+[[package]]
 name = "getrandom"
 version = "0.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"

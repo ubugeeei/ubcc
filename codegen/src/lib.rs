@@ -7,8 +7,8 @@ mod loop_;
 mod variable;
 
 // entry
-pub fn codegen(input: String) {
-    let generator = CodeGenerator::new(input);
+pub fn codegen(ast: Program) {
+    let generator = CodeGenerator::new(ast);
     generator.codegen();
 }
 
@@ -17,14 +17,7 @@ struct CodeGenerator {
 }
 
 impl CodeGenerator {
-    fn new(input: String) -> Self {
-        let ast = match parse::parse(input) {
-            Ok(ast) => ast,
-            Err(e) => {
-                eprintln!("{}", e);
-                std::process::exit(1);
-            }
-        };
+    fn new(ast: Program) -> Self {
         Self { ast }
     }
 }
