@@ -10,6 +10,7 @@ impl Parser {
     ) -> Result<Expression, String> {
         let mut expr = match self.current_token.clone() {
             Token::Integer(n) => Expression::Integer(n),
+            Token::String(s) => Expression::String(s),
             Token::LParen => self.parse_grouped_expression()?,
             Token::Minus | Token::Asterisk | Token::Ampersand => self.parse_unary_expression()?,
             Token::Identifier(name) => match self.peeked_token {
@@ -227,6 +228,29 @@ mod test {
                     expr: Box::new(Expression::Integer(10)),
                     op: UnaryOperator::Minus,
                 },
+            ),
+        ];
+
+        for (input, expected) in cases {
+            let lexer = Lexer::new(input);
+            let mut parser = Parser::new(lexer);
+            assert_eq!(
+                parser.parse_expression(Precedence::Lowest).unwrap(),
+                expected
+            );
+        }
+    }
+
+    #[test]
+    fn test_parse_string() {
+        let cases = vec![
+            (
+                String::from(r#""hello""#),
+                Expression::String(String::from("hello")),
+            ),
+            (
+                String::from(r#""hello world""#),
+                Expression::String(String::from("hello world")),
             ),
         ];
 
