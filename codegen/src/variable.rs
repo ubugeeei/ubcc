@@ -26,10 +26,20 @@ impl CodeGenerator {
     }
     pub(super) fn gen_lval(&self, node: &Expression) {
         match node {
-            Expression::LocalVariable { offset, .. } => {
-                println!("  mov rax, rbp");
-                println!("  sub rax, {offset}");
-                println!("  push rax");
+            Expression::LocalVariable { offset, type_, .. } => {
+                match type_ {
+                    // cast to pointer
+                    Type::Array { type_, size, .. } => {
+                        println!("  mov rax, rbp");
+                        println!("  sub rax, {}", (*offset) - (*size as usize - 1) * (type_.size()));
+                        println!("  push rax");
+                    }
+                    _ => {
+                        println!("  mov rax, rbp");
+                        println!("  sub rax, {offset}");
+                        println!("  push rax");
+                    }
+                }
                 println!("");
             }
             _ => {

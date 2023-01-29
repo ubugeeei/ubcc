@@ -1,5 +1,5 @@
 #!/bin/bash
-UBCC=./target/x86_64-unknown-linux-musl/debug/ubcc
+UBCC=./target/x86_64-unknown-linux-musl/debug/core
 assert() {
   expected="$1"
   input="$2"
@@ -260,7 +260,6 @@ assert 100 "\
 #     return *p;
 #   }
 # "
-
 assert 8 "\
   int main() {
     int x = 0;
@@ -268,13 +267,21 @@ assert 8 "\
   }
 "
 
-# assert 3 "\
-#   int main() {
-#     int a[2];
-#     *a = 1;
-#     *(a + 1) = 2;
-#     int *p;
-#     p = a;
-#     return *p + *(p + 1);
-#   }
-# "
+assert 1 "\
+  int main() {
+    int a[2];
+    *a = 1;
+    return *a;
+  }
+"
+
+assert 3 "\
+  int main() {
+    int a[2];
+    *a = 1;
+    *(a + 1) = 2;
+    int *p;
+    p = a;
+    return *p + *(p + 1);
+  }
+"
