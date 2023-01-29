@@ -203,7 +203,6 @@ impl Parser {
             }
         }
 
-        self.next_token();
         self.next_token(); // skip '}'
 
         Ok(Expression::Array { elements })
@@ -533,28 +532,31 @@ mod test {
     #[test]
     fn test_parse_array_expression() {
         let cases = vec![(
-            String::from("int array[3] = { 1, 2, 3 };"),
-            Statement::InitDeclaration {
-                name: String::from("array"),
-                offset: 24,
-                type_: Type::Array {
-                    type_: Box::new(Type::Primitive(TypeEnum::Int)),
-                    size: 3,
+            String::from("int array[3] = { 1, 2, 3 }; return 0;"),
+            vec![
+                Statement::InitDeclaration {
+                    name: String::from("array"),
+                    offset: 24,
+                    type_: Type::Array {
+                        type_: Box::new(Type::Primitive(TypeEnum::Int)),
+                        size: 3,
+                    },
+                    init: Some(Expression::Array {
+                        elements: vec![
+                            Expression::Integer(1),
+                            Expression::Integer(2),
+                            Expression::Integer(3),
+                        ],
+                    }),
                 },
-                init: Some(Expression::Array {
-                    elements: vec![
-                        Expression::Integer(1),
-                        Expression::Integer(2),
-                        Expression::Integer(3),
-                    ],
-                }),
-            },
+                Statement::Return(Expression::Integer(0)),
+            ],
         )];
 
         for (input, expected) in cases {
             let lexer = Lexer::new(input);
             let mut parser = Parser::new(lexer);
-            assert_eq!(parser.parse().unwrap().statements, vec![expected]);
+            assert_eq!(parser.parse().unwrap().statements, expected);
         }
     }
 }
