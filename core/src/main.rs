@@ -4,7 +4,11 @@ fn main() -> Result<(), String> {
         panic!("Invalid number of arguments");
     }
 
-    let input = argv[1].clone();
+    let file_path = argv[1].clone();
+    let input = match std::fs::read_to_string(file_path) {
+        Ok(input) => input,
+        Err(e) => panic!("Failed to read file: {}", e),
+    };
     let lexer = lex::Lexer::new(input);
     let ast = parse::parse(lexer)?;
     codegen::codegen(ast);

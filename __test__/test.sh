@@ -1,5 +1,7 @@
 #!/bin/bash
 UBCC=target/x86_64-unknown-linux-musl/debug/core
+TEST_DATA_DIR=__test__/data
+
 assert() {
   expected="$1"
   input="$2"
@@ -17,354 +19,56 @@ assert() {
   fi
 }
 
-assert 0 "\
-  int main() {
-    return 0;
-  }
-"
-assert 42 "\
-  int main() {
-    return 42;
-  }
-"
+assert 0 "${TEST_DATA_DIR}/expr/single_int_lit.c"
+assert 42 "${TEST_DATA_DIR}/expr/multi_int_lit.c"
+assert 21 "${TEST_DATA_DIR}/expr/add_sub.c"
+assert 47 "${TEST_DATA_DIR}/expr/mul.c"
+assert 15 "${TEST_DATA_DIR}/expr/grouped.c"
+assert 4 "${TEST_DATA_DIR}/expr/grouped2.c"
+assert 12 "${TEST_DATA_DIR}/expr/assign.c"
 
-assert 21 "\
-  int main() {
-    return 5 + 20 - 4;
-  }"
-assert 47 "\
-  int main() {
-    return 5 + 6 * 7;
-  }
-"
+assert 1 "${TEST_DATA_DIR}/comp/equivalence2.c"
+assert 0 "${TEST_DATA_DIR}/comp/equivalence.c"
+assert 1 "${TEST_DATA_DIR}/comp/inequivalence.c"
+assert 0 "${TEST_DATA_DIR}/comp/inequivalence2.c"
+assert 1 "${TEST_DATA_DIR}/comp/lt.c"
+assert 0 "${TEST_DATA_DIR}/comp/lt2.c"
+assert 0 "${TEST_DATA_DIR}/comp/lt3.c"
+assert 1 "${TEST_DATA_DIR}/comp/lte.c"
+assert 1 "${TEST_DATA_DIR}/comp/lte2.c"
+assert 0 "${TEST_DATA_DIR}/comp/lte3.c"
+assert 1 "${TEST_DATA_DIR}/comp/gt.c"
+assert 0 "${TEST_DATA_DIR}/comp/gt2.c"
+assert 0 "${TEST_DATA_DIR}/comp/gt3.c"
+assert 1 "${TEST_DATA_DIR}/comp/gte.c"
+assert 1 "${TEST_DATA_DIR}/comp/gte2.c"
+assert 0 "${TEST_DATA_DIR}/comp/gte3.c"
 
-assert 15 "\
-  int main() {
-    return 5 * (9 - 6);
-  }"
-assert 4 "\
-  int main() {
-    return (3 + 5) / 2;
-  }"
+assert 4 "${TEST_DATA_DIR}/declare/var.c"
+assert 7 "${TEST_DATA_DIR}/declare/var2.c"
+assert 7 "${TEST_DATA_DIR}/declare/var3.c"
+assert 10 "${TEST_DATA_DIR}/declare/func.c"
+assert 1 "${TEST_DATA_DIR}/declare/array/deref.c"
+# assert 3 "${TEST_DATA_DIR}/declare/array/deref2.c"  # FIXME: this is not working
+assert 1 "${TEST_DATA_DIR}/declare/array/deref3.c"
+assert 1 "${TEST_DATA_DIR}/declare/array/index.c"
+assert 2 "${TEST_DATA_DIR}/declare/array/index2.c"
+assert 1 "${TEST_DATA_DIR}/declare/array/init.c"
+assert 10 "${TEST_DATA_DIR}/declare/array/init2.c"
 
-assert 0 "\
-  int main() {
-    return 0 == 1;
-  }
-"
-assert 1 "\
-  int main() {
-    return 42 == 42;
-  }
-"
-assert 1 "\
-  int main() {
-    return 0 != 1;
-  }
-"
-assert 0 "\
-  int main() {
-    return 42 != 42;
-  }
-"
+assert 54 "${TEST_DATA_DIR}/branch/if.c"
+assert 110 "${TEST_DATA_DIR}/branch/if2.c"
+assert 150 "${TEST_DATA_DIR}/branch/if3.c"
 
-assert 1 "\
-  int main() {
-    return 0 < 1;
-  }
-"
-assert 0 "\
-  int main() {
-    return 1 < 1;
-  }
-"
-assert 0 "\
-  int main() {
-    return 2 < 1;
-  }
-"
-assert 1 "\
-  int main() {
-    return 0 <= 1;
-  }
-"
-assert 1 "\
-  int main() {
-    return 1 <= 1;
-  }
-"
-assert 0 "\
-  int main() {
-    return 2 <= 1;
-  }
-"
+assert 10 "${TEST_DATA_DIR}/loop/while.c"
+assert 10 "${TEST_DATA_DIR}/loop/for.c"
 
-assert 1 "\
-  int main() {
-    return 1 > 0;
-  }
-"
-assert 0 "\
-  int main() {
-    return 1 > 1;
-  }
-"
-assert 0 "\
-  int main() {
-    return 1 > 2;
-  }
-"
-assert 1 "\
-  int main() {
-    return 1 >= 0;
-  }
-"
-assert 1 "\
-  int main() {
-    return 1 >= 1;
-  }
-"
-assert 0 "\
-  int main() {
-    return 1 >= 2;
-  }
-"
+assert 3 "${TEST_DATA_DIR}/pointer/ref.c"
+assert 3 "${TEST_DATA_DIR}/pointer/deref_assign.c"
+assert 200 "${TEST_DATA_DIR}/pointer/ref_inc.c"
+# assert 200 "${TEST_DATA_DIR}/pointer/ref_inc2.c"  # FIXME: this is not working
+assert 100 "${TEST_DATA_DIR}/pointer/ref_dec.c"
 
-assert 4 "\
-  int main() {
-    int a = 2;
-    return a + 2;
-  }
-"
-assert 7 "\
-  int main() {
-    int a = 2;
-    int z = 5;
-    int c = a + z;
-    return c;
-  }
-"
-assert 7 "\
-  int main() {
-    int foo = 2;
-    int z = 5;
-    return foo + z;
-  }
-"
-
-assert 54 "\
-  int main() {
-    int foo = 4;
-    int z = 5;
-    if (foo / 2 == 2) z = 50;
-    return foo + z;
-  }
-"
-
-assert 110 "\
-  int main() {
-    int foo = 10;
-    int z = 0;
-    if (foo / 2 == 2) z = 50; else z = 100;
-    return foo + z;
-  }
-"
-
-assert 150 "\
-  int main() {
-    int foo = 100;
-    int z;
-    if (foo / 2 == 50) {
-      z = 50;
-    } else {
-      z = 100;
-    }
-    return foo + z;
-  }
-"
-
-assert 10 "\
-  int main() {
-    int i = 0;
-    while (i < 10) i = i + 1;
-    return i;
-  }
-"
-
-assert 10 "\
-  int main() {
-    int i = 0;
-    for (i = 1; i < 10; i = i + 2) {
-      i = i - 1;
-    }
-    return i;
-  }
-"
-
-assert 10 "\
-  int foo(int i) {
-    return i;
-  }
-  int main() {
-    int a = foo(10);
-    return 10;
-  }
-"
-
-assert 12 "\
-  int main() {
-    int a = 10;
-    a = a + 2;
-    return a;
-  }
-"
-
-assert 3 "\
-  int main() {
-    int x = 3;
-    int *y = &x;
-    return *y;
-  }
-"
-
-assert 3 "\
-  int main() {
-    int x = 0;
-    int *y = &x;
-    *y = 3;
-    return x;
-  }
-"
-
-assert 200 "\
-  int main() {
-    int x = 100;
-    int a = 200;
-
-    int *p = &x;
-    p = p + 1;
-    return *p;
-  }
-"
-
-# FIXME: this is not working
-# assert 300 "\
-#   int main() {
-#     int x = 100;
-#     int a = 200;
-#     int b = 300;
-#     int *p = &x;
-#     p = p + 2;
-#     return *p;
-#   }
-# "
-
-assert 100 "\
-  int main() {
-    int x = 100;
-    int a = 200;
-
-    int *p = &a;
-    p = p - 1;
-
-    return *p;
-  }
-"
-
-assert 8 "\
-  int main() {
-    int x = 0;
-    return sizeof(x);
-  }
-"
-
-assert 1 "\
-  int main() {
-    int a[2];
-    *a = 1;
-    return *a;
-  }
-"
-
-# FIXME: this is not working
-# assert 3 "\
-#   int main() {
-#     int a[2];
-#     *a = 1;
-#     *(a + 1) = 2;
-#     int *p;
-#     p = a;
-#     return *p + *(p + 1);
-#   }
-# "
-
-assert 1 "\
-  int main() {
-    int a[2];
-    a[0] = 1;
-    return a[0];
-  }
-"
-
-assert 2 "\
-  int main() {
-    int a[2];
-    a[0] = 1;
-    a[1] = 2;
-    return a[1];
-  }
-"
-
-assert 1 "\
-  int main() {
-    int a[2];
-    a[0] = 1;
-    return *a;
-  }
-"
-
-assert 1 "\
-  int main() {
-    int a[2];
-    *a = 1;
-    return *a;
-  }
-"
-
-assert 1 "\
-  int main() {
-    int a[2];
-    *a = 1;
-    return a[0];
-  }
-"
-
-assert 1 "\
-  int main() {
-    int a[2] = { 1, 2 };
-    return a[0];
-  }
-"
-
-assert 10 "\
-  int main() {
-    int a[10] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-    return a[9];
-  }
-"
-
-assert 0 "\
-  int main() {
-    // comment
-    return 0;
-  }
-"
-
-assert 0 "\
-  int main() {
-    /*
-     * comment
-     */
-    return 0;
-  }
-"
+assert 8 "${TEST_DATA_DIR}/builtin/sizeof.c"
+assert 0 "${TEST_DATA_DIR}/comment/line.c"
+assert 0 "${TEST_DATA_DIR}/comment/block.c"
