@@ -16,4 +16,4 @@ test:
 	- cargo test
 
 e2e:
-	- docker run -it -v $(CURDIR):/ws -w /ws compilerbook ./test.sh
+	- docker run -it -v $(CURDIR):/ws -w /ws compilerbook ./__test__/test.sh

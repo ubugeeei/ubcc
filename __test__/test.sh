@@ -1,5 +1,5 @@
 #!/bin/bash
-UBCC=./target/x86_64-unknown-linux-musl/debug/core
+UBCC=target/x86_64-unknown-linux-musl/debug/core
 assert() {
   expected="$1"
   input="$2"
