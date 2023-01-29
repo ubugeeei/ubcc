@@ -128,6 +128,11 @@ impl Lexer {
                 self.consume_char();
                 Token::Ampersand
             }
+            '"' => {
+                self.consume_char();
+                let s = self.consume_string();
+                Token::String(s)
+            }
             ';' => {
                 self.consume_char();
                 Token::SemiColon
@@ -195,6 +200,16 @@ impl Lexer {
         }
     }
 
+    fn consume_string(&mut self) -> String {
+        let position = self.position;
+        while self.ch != '"' {
+            self.consume_char();
+        }
+        let s = self.input[position..self.position].to_string();
+        self.consume_char(); // consume '"'
+        s
+    }
+
     fn consume_inline_comment(&mut self) {
         while self.ch != '\n' {
             self.consume_char();
@@ -244,7 +259,7 @@ mod test {
     fn test_next_token() {
         {
             let input = String::from(
-                "1 + - / * ( ) { } = ! == != < > <= >= & ; , a b foo bar return if else while for void char short int long float double",
+                "1 + - / * ( ) { } = ! == != < > <= >= & ; , a b foo bar return if else while for void char short int long float double \"Hello World!\n\"",
             );
             let mut lexer = Lexer::new(input);
             assert_eq!(lexer.next(), Token::Integer(1));
@@ -283,6 +298,7 @@ mod test {
             assert_eq!(lexer.next(), Token::Long);
             assert_eq!(lexer.next(), Token::Float);
             assert_eq!(lexer.next(), Token::Double);
+            assert_eq!(lexer.next(), Token::String(String::from("Hello World!\n")));
             assert_eq!(lexer.next(), Token::Eof);
         }
         {
