@@ -296,6 +296,15 @@ assert 1 "\
   }
 "
 
+assert 2 "\
+  int main() {
+    int a[2];
+    a[0] = 1;
+    a[1] = 2;
+    return a[1];
+  }
+"
+
 assert 1 "\
   int main() {
     int a[2];
@@ -324,5 +333,12 @@ assert 1 "\
   int main() {
     int a[2] = { 1, 2 };
     return a[0];
+  }
+"
+
+assert 10 "\
+  int main() {
+    int a[10] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+    return a[9];
   }
 "

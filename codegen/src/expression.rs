@@ -97,13 +97,8 @@ impl CodeGenerator {
                     ),
                 };
 
-                println!(
-                    "  # calc offset (element type size: {}) * (index + 1)",
-                    element_type.size()
-                );
-                println!("  add rdi, 1");
                 println!("  imul rdi, {}", element_type.size());
-                println!("  add rax, rdi");
+                println!("  sub rax, rdi");
 
                 // load value from offset
                 println!("  mov rax, [rax]");
@@ -242,10 +237,6 @@ impl CodeGenerator {
                                     },
                                     _ => panic!("Invalid node: {:?}.\nleft node is not var on assignment expression.", expr),
                                 };
-                                println!(
-                                    "  # calc offset (element type size: {}) * (index + 1)",
-                                    element_type.size()
-                                );
                                 println!("  add rdi, 1");
                                 println!("  imul rdi, {}", element_type.size());
                                 println!("  add rax, rdi");
