@@ -37,6 +37,15 @@ impl Lexer {
                 Token::Asterisk
             }
             '/' => {
+                match self.peek_char() {
+                    '/' => {
+                        self.consume_char();
+                        self.consume_char(); // skip '/'
+                        self.consume_inline_comment();
+                        return self.next();
+                    }
+                    _ => {}
+                }
                 self.consume_char();
                 Token::Slash
             }
@@ -179,6 +188,12 @@ impl Lexer {
         }
     }
 
+    fn consume_inline_comment(&mut self) {
+        while self.ch != '\n' {
+            self.consume_char();
+        }
+    }
+
     fn skip_whitespace(&mut self) {
         while self.ch.is_whitespace() {
             self.consume_char();
@@ -274,6 +289,32 @@ mod test {
             assert_eq!(lexer.next(), Token::Integer(20));
             assert_eq!(lexer.next(), Token::Minus);
             assert_eq!(lexer.next(), Token::Integer(4));
+            assert_eq!(lexer.next(), Token::Eof);
+        }
+
+        {
+            let input = String::from(
+                r#"
+5+20-4;
+// comment
+5+20-4;
+"#,
+            );
+            let mut lexer = Lexer::new(input);
+
+            assert_eq!(lexer.next(), Token::Integer(5));
+            assert_eq!(lexer.next(), Token::Plus);
+            assert_eq!(lexer.next(), Token::Integer(20));
+            assert_eq!(lexer.next(), Token::Minus);
+            assert_eq!(lexer.next(), Token::Integer(4));
+            assert_eq!(lexer.next(), Token::SemiColon);
+
+            assert_eq!(lexer.next(), Token::Integer(5));
+            assert_eq!(lexer.next(), Token::Plus);
+            assert_eq!(lexer.next(), Token::Integer(20));
+            assert_eq!(lexer.next(), Token::Minus);
+            assert_eq!(lexer.next(), Token::Integer(4));
+            assert_eq!(lexer.next(), Token::SemiColon);
             assert_eq!(lexer.next(), Token::Eof);
         }
     }

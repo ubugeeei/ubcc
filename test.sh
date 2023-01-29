@@ -352,3 +352,10 @@ assert 10 "\
     return a[9];
   }
 "
+
+assert 0 "\
+  int main() {
+    // comment out
+    return 0;
+  }
+"
