@@ -109,12 +109,12 @@ impl CodeGenerator {
                     BinaryOperator::Plus => match lhs.as_ref() {
                         Expression::LocalVariable { type_, .. } => match type_ {
                             Type::Pointer(_) => {
-                                self.gen_lval(lhs);
+                                self.gen_expr(lhs);
                                 self.gen_expr(rhs);
-                                println!("  pop rax");
                                 println!("  pop rdi");
-                                println!("  imul rax, {}", type_.size());
-                                println!("  add rax, rdi");
+                                println!("  pop rax");
+                                println!("  imul rdi, {}", type_.size());
+                                println!("  sub rax, rdi");
                             }
                             _ => {
                                 self.gen_expr(lhs);
@@ -135,13 +135,12 @@ impl CodeGenerator {
                     BinaryOperator::Minus => match lhs.as_ref() {
                         Expression::LocalVariable { type_, .. } => match type_ {
                             Type::Pointer(_) => {
-                                self.gen_lval(lhs);
+                                self.gen_expr(lhs);
                                 self.gen_expr(rhs);
-                                println!("  pop rax");
                                 println!("  pop rdi");
-                                println!("  imul rax, {}", type_.size());
-                                println!("  add rdi, rax");
-                                println!("  mov rax, rdi");
+                                println!("  pop rax");
+                                println!("  imul rdi, {}", type_.size());
+                                println!("  add rax, rdi");
                             }
                             _ => {
                                 self.gen_expr(lhs);

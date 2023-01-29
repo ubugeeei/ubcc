@@ -236,10 +236,10 @@ assert 3 "\
   }
 "
 
-assert 100 "\
+assert 200 "\
   int main() {
-    int x = 0;
-    int a = 100;
+    int x = 100;
+    int a = 200;
 
     int *p = &x;
     p = p + 1;
@@ -247,19 +247,29 @@ assert 100 "\
   }
 "
 
-# FIXME: this is not working (decrement pointer)
-# assert 100 "\
+# FIXME: this is not working
+# assert 300 "\
 #   int main() {
 #     int x = 100;
 #     int a = 200;
-
+#     int b = 300;
 #     int *p = &x;
-#     p = p + 1;
-#     p = p - 1;
-
+#     p = p + 2;
 #     return *p;
 #   }
 # "
+
+assert 100 "\
+  int main() {
+    int x = 100;
+    int a = 200;
+
+    int *p = &a;
+    p = p - 1;
+
+    return *p;
+  }
+"
 
 assert 8 "\
   int main() {
