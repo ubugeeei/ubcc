@@ -24,12 +24,16 @@ impl CodeGenerator {
                     println!("  push rax");
                 }
             },
-            Expression::LocalVariable { .. } => {
-                self.gen_lval(node);
-                println!("  pop rax");
-                println!("  mov rax, [rax]");
-                println!("  push rax");
-            }
+            Expression::LocalVariable { type_, .. } => match type_ {
+                // cast to pointer
+                Type::Array { .. } => self.gen_lval(node),
+                _ => {
+                    self.gen_lval(node);
+                    println!("  pop rax");
+                    println!("  mov rax, [rax]");
+                    println!("  push rax");
+                }
+            },
             Expression::Call {
                 callee_name,
                 arguments,
@@ -70,6 +74,39 @@ impl CodeGenerator {
                 }
                 println!("  mov rax, 0x0");
                 println!("  call {}", callee_name);
+                println!("  push rax");
+            }
+            Expression::Index { expr, index } => {
+                self.gen_expr(expr); // pointer
+                self.gen_expr(index);
+                println!("  pop rdi");
+                println!("  pop rax"); // pointer
+
+                // calc offset
+                let element_type = match expr.as_ref() {
+                    Expression::LocalVariable { type_, .. } => match type_ {
+                        Type::Array { type_, .. } => type_.as_ref(),
+                        _ => panic!(
+                            "Invalid node: {:?}.\nleft node is not array on index expression.",
+                            expr
+                        ),
+                    },
+                    _ => panic!(
+                        "Invalid node: {:?}.\nleft node is not array on index expression.",
+                        expr
+                    ),
+                };
+
+                println!(
+                    "  # calc offset (element type size: {}) * (index + 1)",
+                    element_type.size()
+                );
+                println!("  add rdi, 1");
+                println!("  imul rdi, {}", element_type.size());
+                println!("  add rax, rdi");
+
+                // load value from offset
+                println!("  mov rax, [rax]");
                 println!("  push rax");
             }
             Expression::Binary { lhs, op, rhs } => {
@@ -191,6 +228,28 @@ impl CodeGenerator {
                                     panic!("Invalid node: {:?}.\nleft node is not var on assignment expression.", expr);
                                 }
                             },
+                            Expression::Index { expr, index } => {
+                                self.gen_lval(expr);
+                                self.gen_expr(index);
+                                println!("  pop rdi");
+                                println!("  pop rax");
+
+                                // calc offset
+                                let element_type = match expr.as_ref() {
+                                    Expression::LocalVariable { type_, .. } => match type_ {
+                                        Type::Array { type_, .. } => type_.as_ref(),
+                                        _ => panic!("Invalid node: {:?}.\nleft node is not var on assignment expression.", expr),
+                                    },
+                                    _ => panic!("Invalid node: {:?}.\nleft node is not var on assignment expression.", expr),
+                                };
+                                println!(
+                                    "  # calc offset (element type size: {}) * (index + 1)",
+                                    element_type.size()
+                                );
+                                println!("  add rdi, 1");
+                                println!("  imul rdi, {}", element_type.size());
+                                println!("  add rax, rdi");
+                            }
                             Expression::LocalVariable { .. } => {
                                 self.gen_lval(lhs);
                             }
