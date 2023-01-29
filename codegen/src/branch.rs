@@ -1,4 +1,5 @@
 use ast::{Expression, Statement};
+use helper::rand::rand;
 
 use crate::CodeGenerator;
 
@@ -12,8 +13,8 @@ impl CodeGenerator {
         println!("# -- start if");
         match alternative {
             Some(alternative) => {
-                let label_else = format!(".Lelse{}", rand::random::<u32>());
-                let label_end = format!(".Lend{}", rand::random::<u32>());
+                let label_else = format!(".Lelse{}", rand());
+                let label_end = format!(".Lend{}", rand());
                 self.gen_expr(condition);
                 println!("  pop rax");
                 println!("  cmp rax, 0");
@@ -25,7 +26,7 @@ impl CodeGenerator {
                 println!("{label_end}:");
             }
             None => {
-                let label = format!(".Lend{}", rand::random::<u32>());
+                let label = format!(".Lend{}", rand());
                 self.gen_expr(condition);
                 println!("  pop rax");
                 println!("  cmp rax, 0");
@@ -40,8 +41,8 @@ impl CodeGenerator {
 
     pub(super) fn gen_while(&self, condition: &Expression, body: &Box<Statement>) {
         println!("# -- start while");
-        let label_begin = format!(".Lbegin{}", rand::random::<u32>());
-        let label_end = format!(".Lend{}", rand::random::<u32>());
+        let label_begin = format!(".Lbegin{}", rand());
+        let label_end = format!(".Lend{}", rand());
         println!("{label_begin}:");
         self.gen_expr(condition);
         println!("  pop rax");

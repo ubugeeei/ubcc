@@ -1,4 +1,5 @@
 use ast::{Expression, Statement};
+use helper::rand::rand;
 
 use crate::CodeGenerator;
 
@@ -11,8 +12,8 @@ impl CodeGenerator {
         body: &Box<Statement>,
     ) {
         println!("# -- start for");
-        let label_begin = format!(".Lbegin{}", rand::random::<u32>());
-        let label_end = format!(".Lend{}", rand::random::<u32>());
+        let label_begin = format!(".Lbegin{}", rand());
+        let label_end = format!(".Lend{}", rand());
 
         // init
         match init {

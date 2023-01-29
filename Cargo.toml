@@ -1,2 +1,2 @@
 [workspace]
-members = ["core", "ast", "codegen", "lex", "parse"]
+members = ["core", "ast", "codegen", "helper", "lex", "parse"]
