@@ -102,6 +102,7 @@ pub enum Expression {
     Array {
         elements: Vec<Expression>,
     },
+    String(String),
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -122,7 +123,6 @@ pub enum UnaryOperator {
     Minus,
     Dereference,
     Reference,
-    // Bang,
     // Increment,
     // Decrement,
 }
