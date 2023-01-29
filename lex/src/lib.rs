@@ -44,10 +44,17 @@ impl Lexer {
                         self.consume_inline_comment();
                         return self.next();
                     }
-                    _ => {}
+                    '*' => {
+                        self.consume_char();
+                        self.consume_char(); // skip '*'
+                        self.consume_block_comment();
+                        return self.next();
+                    }
+                    _ => {
+                        self.consume_char();
+                        Token::Slash
+                    }
                 }
-                self.consume_char();
-                Token::Slash
             }
             '(' => {
                 self.consume_char();
@@ -194,6 +201,14 @@ impl Lexer {
         }
     }
 
+    fn consume_block_comment(&mut self) {
+        while self.ch != '*' || self.peek_char() != '/' {
+            self.consume_char();
+        }
+        self.consume_char(); // consume '*'
+        self.consume_char(); // consume '/'
+    }
+
     fn skip_whitespace(&mut self) {
         while self.ch.is_whitespace() {
             self.consume_char();
@@ -298,9 +313,29 @@ mod test {
 5+20-4;
 // comment
 5+20-4;
+/* comment */
+5+20-4;
+/**
+ * comment
+ */
+5+20-4;
 "#,
             );
             let mut lexer = Lexer::new(input);
+
+            assert_eq!(lexer.next(), Token::Integer(5));
+            assert_eq!(lexer.next(), Token::Plus);
+            assert_eq!(lexer.next(), Token::Integer(20));
+            assert_eq!(lexer.next(), Token::Minus);
+            assert_eq!(lexer.next(), Token::Integer(4));
+            assert_eq!(lexer.next(), Token::SemiColon);
+
+            assert_eq!(lexer.next(), Token::Integer(5));
+            assert_eq!(lexer.next(), Token::Plus);
+            assert_eq!(lexer.next(), Token::Integer(20));
+            assert_eq!(lexer.next(), Token::Minus);
+            assert_eq!(lexer.next(), Token::Integer(4));
+            assert_eq!(lexer.next(), Token::SemiColon);
 
             assert_eq!(lexer.next(), Token::Integer(5));
             assert_eq!(lexer.next(), Token::Plus);

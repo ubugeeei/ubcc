@@ -355,7 +355,16 @@ assert 10 "\
 
 assert 0 "\
   int main() {
-    // comment out
+    // comment
+    return 0;
+  }
+"
+
+assert 0 "\
+  int main() {
+    /*
+     * comment
+     */
     return 0;
   }
 "
