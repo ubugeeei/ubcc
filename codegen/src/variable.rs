@@ -30,9 +30,11 @@ impl CodeGenerator {
                 match type_ {
                     // cast to pointer
                     Type::Array { type_, size, .. } => {
-                        println!("  # generate as pointer!!!!!!!!!!!!!!");
                         println!("  mov rax, rbp");
-                        println!("  sub rax, {}", (*offset) - (*size as usize - 1) * (type_.size()));
+                        println!(
+                            "  sub rax, {}",
+                            (*offset) - (*size as usize - 1) * (type_.size())
+                        );
                         println!("  push rax");
                     }
                     _ => {
