@@ -4,9 +4,9 @@ assert() {
   expected="$1"
   input="$2"
 
-  ${UBCC} "$input" >target/tmp.s
-  cc -o target/tmp target/tmp.s
-  ./target/tmp
+  ${UBCC} "$input" >target/main.s
+  cc -o target/a.out target/main.s
+  ./target/a.out
   actual="$?"
 
   if [ "$actual" = "$expected" ]; then
