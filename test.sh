@@ -292,22 +292,6 @@ assert 1 "\
   int main() {
     int a[2];
     a[0] = 1;
-    return *a;
-  }
-"
-
-assert 1 "\
-  int main() {
-    int a[2];
-    *a = 1;
-    return *a;
-  }
-"
-
-assert 1 "\
-  int main() {
-    int a[2];
-    a[0] = 1;
     return a[0];
   }
 "
@@ -315,7 +299,30 @@ assert 1 "\
 assert 1 "\
   int main() {
     int a[2];
+    a[0] = 1;
+    return *a;
+  }
+"
+
+assert 1 "\
+  int main() {
+    int a[2];
     *a = 1;
+    return *a;
+  }
+"
+
+assert 1 "\
+  int main() {
+    int a[2];
+    *a = 1;
+    return a[0];
+  }
+"
+
+assert 1 "\
+  int main() {
+    int a[2] = { 1, 2 };
     return a[0];
   }
 "

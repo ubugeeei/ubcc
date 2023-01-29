@@ -271,7 +271,7 @@ impl CodeGenerator {
                 }
                 println!("  push rax");
             }
-            _ => todo!(),
+            _ => unreachable!(),
         }
     }
 }
