@@ -58,7 +58,7 @@ impl Type {
             Type::Primitive(TypeEnum::Float) => 4,
             Type::Primitive(TypeEnum::Double) => 8,
             Type::Pointer(_) => 8,
-            Type::Array { size, .. } => (size * 8) as usize,
+            Type::Array { size, type_, .. } => *size as usize * type_.size(),
         }
     }
 }

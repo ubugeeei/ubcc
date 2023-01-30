@@ -90,7 +90,7 @@ impl CodeGenerator {
 
                 // TODO:
                 println!("  mov rax, rbp");
-                println!("  sub rax, {}", offset - 8 * (len - 1));
+                println!("  sub rax, {}", offset - (len - 1));
                 println!("  push rax");
 
                 println!("  pop rax");
