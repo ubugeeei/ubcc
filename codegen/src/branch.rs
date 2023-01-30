@@ -5,7 +5,7 @@ use crate::CodeGenerator;
 
 impl CodeGenerator {
     pub(super) fn gen_if(
-        &self,
+        &mut self,
         condition: &Expression,
         consequence: &Box<Statement>,
         alternative: &Option<Box<Statement>>,
@@ -39,7 +39,7 @@ impl CodeGenerator {
         println!("");
     }
 
-    pub(super) fn gen_while(&self, condition: &Expression, body: &Box<Statement>) {
+    pub(super) fn gen_while(&mut self, condition: &Expression, body: &Box<Statement>) {
         println!("# -- start while");
         let label_begin = format!(".Lbegin{}", rand());
         let label_end = format!(".Lend{}", rand());

@@ -8,37 +8,51 @@ mod variable;
 
 // entry
 pub fn codegen(ast: Program) {
-    let generator = CodeGenerator::new(ast);
+    let mut generator = CodeGenerator::new(ast);
     generator.codegen();
+}
+
+struct AsmStringLiteral {
+    label: String,
+    value: String,
 }
 
 struct CodeGenerator {
     ast: Program,
+    str_lits: Vec<AsmStringLiteral>,
 }
 
 impl CodeGenerator {
     fn new(ast: Program) -> Self {
-        Self { ast }
+        Self {
+            ast,
+            str_lits: vec![],
+        }
     }
 }
 
 impl CodeGenerator {
-    fn codegen(&self) {
-        println!(".intel_syntax noprefix");
-        println!(".global main");
+    fn codegen(&mut self) {
+        println!("  .intel_syntax noprefix");
+        println!("  .global main");
         println!("");
-        for stmt in self.ast.statements.iter() {
+        println!("  .text");
+        println!("");
+        for stmt in self.ast.statements.clone().iter() {
             self.gen_stmt(stmt);
         }
+
+        println!("  .data");
+        self.gen_str_lits();
     }
 
-    fn gen_stmts(&self, stmts: &[Statement]) {
+    fn gen_stmts(&mut self, stmts: &[Statement]) {
         for stmt in stmts.iter() {
             self.gen_stmt(stmt);
         }
     }
 
-    fn gen_stmt(&self, node: &Statement) {
+    fn gen_stmt(&mut self, node: &Statement) {
         match node {
             Statement::If {
                 condition,

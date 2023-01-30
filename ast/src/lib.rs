@@ -8,7 +8,7 @@ impl Program {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Statement {
     Expression(Expression),
     If {
@@ -74,7 +74,7 @@ pub enum TypeEnum {
     Double,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Expression {
     LocalVariable {
         name: String,
@@ -102,10 +102,13 @@ pub enum Expression {
     Array {
         elements: Vec<Expression>,
     },
-    String(String),
+    String {
+        label: String,
+        value: String,
+    },
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum BinaryOperator {
     Assignment,
     Plus,
@@ -118,7 +121,7 @@ pub enum BinaryOperator {
     NotEq,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum UnaryOperator {
     Minus,
     Dereference,

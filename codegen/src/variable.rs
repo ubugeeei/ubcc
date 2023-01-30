@@ -1,10 +1,10 @@
 use ast::{Expression, Type};
 
-use crate::CodeGenerator;
+use crate::{AsmStringLiteral, CodeGenerator};
 
 impl CodeGenerator {
     pub(super) fn gen_init_declaration(
-        &self,
+        &mut self,
         name: &String,
         offset: &usize,
         type_: &Type,
@@ -55,7 +55,7 @@ impl CodeGenerator {
         println!("");
     }
 
-    pub(super) fn gen_init_expr(&self, expr: &Expression, offset: &usize, type_: &Type) {
+    pub(super) fn gen_init_expr(&mut self, expr: &Expression, offset: &usize, type_: &Type) {
         match expr {
             Expression::Array { elements, .. } => {
                 println!("  # -- init array start");
@@ -77,6 +77,28 @@ impl CodeGenerator {
                 println!("  # -- init array end");
                 println!("");
             }
+            Expression::String { label, value, .. } => {
+                self.str_lits.push(AsmStringLiteral {
+                    label: label.to_owned(),
+                    value: value.to_owned(),
+                });
+
+                let len = match type_ {
+                    Type::Array { size, .. } => *size as usize,
+                    _ => panic!("Invalid type: {:?}.", type_),
+                };
+
+                // TODO:
+                println!("  mov rax, rbp");
+                println!("  sub rax, {}", offset - 8 * (len - 1));
+                println!("  push rax");
+
+                println!("  pop rax");
+                println!("  mov r8d, {label}");
+                println!("  mov [rax], r8d");
+                println!("  push rdi");
+                println!("");
+            }
             _ => {
                 self.gen_expr(expr);
                 println!("  pop rdi");
@@ -85,6 +107,13 @@ impl CodeGenerator {
                 println!("  push rdi");
                 println!("");
             }
+        }
+    }
+
+    pub(super) fn gen_str_lits(&self) {
+        for lit in self.str_lits.iter() {
+            println!("{}: .string \"{}\"", lit.label, lit.value);
+            println!("");
         }
     }
 }

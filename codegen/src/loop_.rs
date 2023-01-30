@@ -5,7 +5,7 @@ use crate::CodeGenerator;
 
 impl CodeGenerator {
     pub(super) fn gen_for(
-        &self,
+        &mut self,
         init: &Option<Box<Statement>>,
         condition: &Option<Expression>,
         post: &Option<Box<Statement>>,

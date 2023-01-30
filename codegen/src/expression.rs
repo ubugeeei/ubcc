@@ -3,7 +3,7 @@ use ast::{BinaryOperator, Expression, Type, UnaryOperator};
 use crate::CodeGenerator;
 
 impl CodeGenerator {
-    pub(super) fn gen_expr(&self, node: &Expression) {
+    pub(super) fn gen_expr(&mut self, node: &Expression) {
         match node {
             Expression::Integer(int) => {
                 println!("  push {}", int);

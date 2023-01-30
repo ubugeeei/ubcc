@@ -4,7 +4,7 @@ use crate::CodeGenerator;
 
 impl CodeGenerator {
     pub(super) fn gen_function_definition(
-        &self,
+        &mut self,
         name: &String,
         arguments: &Vec<Expression>, // Expression::LocalVariable
         body: &Vec<Statement>,
@@ -34,7 +34,7 @@ impl CodeGenerator {
         println!("");
     }
 
-    pub(super) fn gen_return(&self, node: &Expression) {
+    pub(super) fn gen_return(&mut self, node: &Expression) {
         println!("  # -- return");
         self.gen_expr(node);
         println!("  # epilogue");

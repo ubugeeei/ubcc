@@ -7,7 +7,7 @@ assert() {
   input="$2"
 
   ${UBCC} "$input" >target/main.s
-  cc -o target/a.out target/main.s
+  cc -o target/a.out target/main.s -no-pie
   ./target/a.out
   actual="$?"
 
@@ -55,6 +55,7 @@ assert 1 "${TEST_DATA_DIR}/declare/array/index.c"
 assert 2 "${TEST_DATA_DIR}/declare/array/index2.c"
 assert 1 "${TEST_DATA_DIR}/declare/array/init.c"
 assert 10 "${TEST_DATA_DIR}/declare/array/init2.c"
+assert 0 "${TEST_DATA_DIR}/declare/string/init.c"
 
 assert 54 "${TEST_DATA_DIR}/branch/if.c"
 assert 110 "${TEST_DATA_DIR}/branch/if2.c"
