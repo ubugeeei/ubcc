@@ -1,4 +1,4 @@
-use ast::{Expression, Type};
+use ast::{Expression, Type, TypeEnum};
 
 use crate::{AsmStringLiteral, CodeGenerator};
 
@@ -37,7 +37,6 @@ impl CodeGenerator {
                         println!("  push rax");
                     }
                 }
-                println!("");
             }
             _ => {
                 panic!(
@@ -52,7 +51,6 @@ impl CodeGenerator {
         println!("  mov rax, rbp");
         println!("  sub rax, {offset}");
         println!("  push rax");
-        println!("");
     }
 
     pub(super) fn gen_init_expr(&mut self, expr: &Expression, offset: &usize, type_: &Type) {
@@ -75,29 +73,46 @@ impl CodeGenerator {
                     println!("  push rdi");
                 }
                 println!("  # -- init array end");
-                println!("");
             }
-            Expression::String { label, value, .. } => {
-                self.str_lits.push(AsmStringLiteral {
-                    label: label.to_owned(),
-                    value: value.to_owned(),
-                });
-
-                let len = match type_ {
-                    Type::Array { size, .. } => *size as usize,
+            Expression::String(string) => {
+                println!("  # -- init string start");
+                match type_ {
+                    Type::Array { type_, .. } => match type_.as_ref() {
+                        Type::Primitive(t) => match t {
+                            TypeEnum::Char => {
+                                // TODO:
+                                // let asciis = string
+                                //     .chars()
+                                //     .map(|c| format!("0{:b}", c as u8))
+                                //     .collect::<Vec<String>>();
+                                // let reversed = asciis.into_iter().rev().collect::<Vec<String>>();
+                                // let i = isize::from_str_radix(&reversed.join(""), 2).unwrap();
+                                // self.gen_init_lval(*offset + 1);
+                                // println!("  pop rax");
+                                // println!("  mov [rax], {i}");
+                            }
+                            _ => panic!("Invalid type: {:?}.", type_),
+                        },
+                        _ => panic!("Invalid type: {:?}.", type_),
+                    },
+                    Type::Pointer(t) => match t.as_ref() {
+                        Type::Primitive(t) => match t {
+                            TypeEnum::Char => {
+                                let label = format!(".LC{}", self.str_lits.len());
+                                self.str_lits.push(AsmStringLiteral {
+                                    label: label.clone(),
+                                    value: string.clone(),
+                                });
+                                self.gen_init_lval(*offset);
+                                println!("  pop rax");
+                                println!("  mov qword ptr [rax], offset flat:{label}");
+                            }
+                            _ => panic!("Invalid type: {:?}.", type_),
+                        },
+                        _ => panic!("Invalid type: {:?}.", type_),
+                    },
                     _ => panic!("Invalid type: {:?}.", type_),
-                };
-
-                // TODO:
-                println!("  mov rax, rbp");
-                println!("  sub rax, {}", offset - (len - 1));
-                println!("  push rax");
-
-                println!("  pop rax");
-                println!("  mov r8d, {label}");
-                println!("  mov [rax], r8d");
-                println!("  push rdi");
-                println!("");
+                }
             }
             _ => {
                 self.gen_expr(expr);
@@ -105,7 +120,6 @@ impl CodeGenerator {
                 println!("  pop rax");
                 println!("  mov [rax], rdi");
                 println!("  push rdi");
-                println!("");
             }
         }
     }

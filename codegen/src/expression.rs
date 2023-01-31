@@ -1,4 +1,4 @@
-use ast::{BinaryOperator, Expression, Type, UnaryOperator};
+use ast::{BinaryOperator, Expression, Type, TypeEnum, UnaryOperator};
 
 use crate::CodeGenerator;
 
@@ -20,7 +20,32 @@ impl CodeGenerator {
                 UnaryOperator::Dereference => {
                     self.gen_expr(expr);
                     println!("  pop rax");
-                    println!("  mov rax, [rax]");
+                    match expr.as_ref() {
+                        Expression::LocalVariable { type_, .. } => {
+                            match type_ {
+                                Type::Pointer(ptr) => {
+                                    match ptr.as_ref() {
+                                        Type::Primitive(pt) => {
+                                            match pt {
+                                                // TODO:
+                                                TypeEnum::Int => println!("  mov rax, [rax]"),
+                                                TypeEnum::Char => {
+                                                    println!("  movzx rax, byte ptr [rax]")
+                                                }
+                                                // TODO:
+                                                _ => println!("  mov rax, [rax]"),
+                                            }
+                                        }
+                                        // TODO:
+                                        _ => println!("  mov rax, [rax]"),
+                                    }
+                                }
+                                Type::Array { .. } => println!("  mov rax, [rax]"),
+                                _ => panic!("invalid dereference"),
+                            }
+                        }
+                        _ => panic!("invalid dereference"),
+                    }
                     println!("  push rax");
                 }
             },
