@@ -1,5 +1,4 @@
 use ast::{BinaryOperator, Expression, UnaryOperator};
-use helper::rand::rand;
 use lex::tokens::Token;
 
 use crate::{LVar, Parser, Precedence};
@@ -11,10 +10,7 @@ impl Parser {
     ) -> Result<Expression, String> {
         let mut expr = match self.current_token.clone() {
             Token::Integer(n) => Expression::Integer(n),
-            Token::String(s) => Expression::String {
-                label: format!(".LC{}", rand()),
-                value: s,
-            },
+            Token::String(s) => Expression::String(s),
             Token::LParen => self.parse_grouped_expression()?,
             Token::Minus | Token::Asterisk | Token::Ampersand => self.parse_unary_expression()?,
             Token::Identifier(name) => match self.peeked_token {

@@ -8,4 +8,3 @@ edition = "2021"
 [dependencies]
 ast = { path = "../ast" }
 lex = { path = "../lex" }
-helper = { path = "../helper" }

@@ -102,10 +102,7 @@ pub enum Expression {
     Array {
         elements: Vec<Expression>,
     },
-    String {
-        label: String,
-        value: String,
-    },
+    String(String),
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]

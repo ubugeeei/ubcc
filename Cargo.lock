@@ -38,6 +38,5 @@ name = "parse"
 version = "0.1.0"
 dependencies = [
  "ast",
- "helper",
  "lex",
 ]
