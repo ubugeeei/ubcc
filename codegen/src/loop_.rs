@@ -45,7 +45,6 @@ impl CodeGenerator {
         println!("  jmp {label_begin}");
         println!("{label_end}:");
         println!("# -- end for");
-        println!("");
     }
 
     // TODO: while

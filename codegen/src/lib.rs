@@ -37,7 +37,6 @@ impl CodeGenerator {
         println!("  .global main");
         println!("");
         println!("  .text");
-        println!("");
         for stmt in self.ast.statements.clone().iter() {
             self.gen_stmt(stmt);
         }

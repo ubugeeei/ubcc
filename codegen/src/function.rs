@@ -9,12 +9,13 @@ impl CodeGenerator {
         arguments: &Vec<Expression>, // Expression::LocalVariable
         body: &Vec<Statement>,
     ) {
-        println!("# ====== function definition ======");
+        if name != "main" {
+            println!("# ====== function definition ======");
+        }
         println!("{}:", name);
         println!("  # prologue");
         println!("  push rbp");
         println!("  mov rbp, rsp");
-        println!("");
         println!("  # arguments");
         let registers = ["rdi", "rsi", "rdx", "rcx", "r8d", "r9d"];
         for (i, arg) in arguments.iter().enumerate() {
@@ -27,11 +28,9 @@ impl CodeGenerator {
         if arguments.len() == 0 {
             println!("    # --");
         }
-        println!("");
 
         println!("  # body");
         self.gen_stmts(body);
-        println!("");
     }
 
     pub(super) fn gen_return(&mut self, node: &Expression) {

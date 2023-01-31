@@ -256,7 +256,6 @@ impl CodeGenerator {
                         println!("  mov [rax], rdi");
                         println!("  push rdi");
                         println!("  # --end assignment");
-                        println!("");
                     }
                 }
                 println!("  push rax");

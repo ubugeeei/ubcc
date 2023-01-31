@@ -36,7 +36,6 @@ impl CodeGenerator {
             }
         }
         println!("# -- end if");
-        println!("");
     }
 
     pub(super) fn gen_while(&mut self, condition: &Expression, body: &Box<Statement>) {
@@ -52,6 +51,5 @@ impl CodeGenerator {
         println!("  jmp {label_begin}");
         println!("{label_end}:");
         println!("# -- end while");
-        println!("");
     }
 }
