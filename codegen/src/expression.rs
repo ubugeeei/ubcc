@@ -102,15 +102,34 @@ impl CodeGenerator {
                 println!("  push rax");
             }
             Expression::Index { expr, index } => {
-                self.gen_expr(expr); // pointer
-                self.gen_expr(index);
-                println!("  pop rdi");
-                println!("  pop rax"); // pointer
-
-                // calc offset
-                let element_type = match expr.as_ref() {
+                match expr.as_ref() {
                     Expression::LocalVariable { type_, .. } => match type_ {
-                        Type::Array { type_, .. } => type_.as_ref(),
+                        Type::Array { type_, .. } => {
+                            self.gen_expr(expr); // pointer
+                            self.gen_expr(index);
+                            println!("  pop rdi");
+                            println!("  pop rax"); // pointer
+
+                            // calc offset
+                            println!("  imul rdi, {}", type_.size());
+                            println!("  sub rax, rdi");
+
+                            // load value from offset
+                            println!("  mov rax, [rax]");
+                            println!("  push rax");
+                        }
+                        Type::Pointer(_) => {
+                            self.gen_expr(expr); // pointer
+                            self.gen_expr(index);
+                            println!("  pop rdi");
+                            println!("  pop rax"); // pointer
+                            println!("  add rax, rdi");
+
+                            // TODO: judge type
+                            // load value from offset
+                            println!("  movzx eax, byte ptr [rax]");
+                            println!("  push rax");
+                        }
                         _ => panic!(
                             "Invalid node: {:?}.\nleft node is not array on index expression.",
                             expr
@@ -120,14 +139,7 @@ impl CodeGenerator {
                         "Invalid node: {:?}.\nleft node is not array on index expression.",
                         expr
                     ),
-                };
-
-                println!("  imul rdi, {}", element_type.size());
-                println!("  sub rax, rdi");
-
-                // load value from offset
-                println!("  mov rax, [rax]");
-                println!("  push rax");
+                }
             }
             Expression::Binary { lhs, op, rhs } => {
                 match op {

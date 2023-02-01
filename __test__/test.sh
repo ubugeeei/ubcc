@@ -57,6 +57,7 @@ assert 1 "${TEST_DATA_DIR}/declare/array/init.c"
 assert 10 "${TEST_DATA_DIR}/declare/array/init2.c"
 assert 0 "${TEST_DATA_DIR}/declare/string/init.c"
 assert 65 "${TEST_DATA_DIR}/declare/string/head.c"
+assert 70 "${TEST_DATA_DIR}/declare/string/index.c"
 
 assert 54 "${TEST_DATA_DIR}/branch/if.c"
 assert 110 "${TEST_DATA_DIR}/branch/if2.c"
