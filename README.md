@@ -39,13 +39,13 @@ int main() {
 
 ```c
 int main() {
-    return 5 * (9 - 6);
+    return 5 + 6 * 7;
 }
 ```
 
 ```c
 int main() {
-    return 5 + 6 * 7;
+    return 5 * (9 - 6);
 }
 ```
 
@@ -59,28 +59,19 @@ int main() {
 
 ```c
 int main() {
-    return 1 > 0;
+    return 0 < 1;
 }
-
 ```
 
 ```c
 int main() {
-    return 1 < 1;
+    return 1 >= 0;
 }
-
 ```
 
 ```c
 int main() {
-    return 1 > 2;
-}
-
-```
-
-```c
-int main() {
-    return 1 >= 2;
+    return 0 <= 1;
 }
 
 ```
@@ -94,82 +85,19 @@ int main() {
 
 ```c
 int main() {
-    return 2 <= 1;
-}
-
-```
-
-```c
-int main() {
     return 42 == 42;
 }
 
 ```
 
-```c
-int main() {
-    return 0 <= 1;
-}
-
-```
-
-```c
-int main() {
-    return 0 < 1;
-}
-
-```
-
-```c
-int main() {
-    return 1 <= 1;
-}
-
-```
-
-```c
-int main() {
-    return 1 >= 0;
-}
-
-```
-
-```c
-int main() {
-    return 42 != 42;
-}
-
-```
-
-```c
-int main() {
-    return 2 < 1;
-}
-
-```
-
-```c
-int main() {
-    return 1 > 1;
-}
-
-```
-
-```c
-int main() {
-    return 0 == 1;
-}
-
-```
-
-```c
-int main() {
-    return 1 >= 1;
-}
-
-```
-
 ### variables
+
+```c
+int main() {
+    int a = 2;
+    return a + 2;
+}
+```
 
 ```c
 int main() {
@@ -181,25 +109,9 @@ int main() {
 
 ```c
 int main() {
-    int a = 2;
-    int z = 5;
-    int c = a + z;
-    return c;
-}
-```
-
-```c
-int main() {
-    int foo = 2;
-    int z = 5;
-    return foo + z;
-}
-```
-
-```c
-int main() {
-    int a = 2;
-    return a + 2;
+    int x = 2;
+    int y = 5;
+    return x + y;
 }
 ```
 
@@ -207,39 +119,18 @@ int main() {
 
 ```c
 int main() {
-    int a[2];
-    *a = 1;
-    *(a + 1) = 2;
-    int *p;
-    p = a;
-    return *p + *(p + 1);
-}
-```
-
-```c
-int main() {
-    int a[2];
-    *a = 1;
-    return *a;
-}
-```
-
-```c
-int main() {
-    int x = 100;
-    int a = 200;
-    int b = 300;
-    int *p = &x;
-    p = p + 2;
-    return *p;
-}
-```
-
-```c
-int main() {
     int x = 3;
     int *y = &x;
     return *y;
+}
+```
+
+```c
+int main() {
+    int x = 0;
+    int *y = &x;
+    *y = 3;
+    return x;
 }
 ```
 
@@ -266,64 +157,21 @@ int main() {
 }
 ```
 
-```c
-int main() {
-    int x = 0;
-    int *y = &x;
-    *y = 3;
-    return x;
-}
-```
-
-```c
-int main() {
-    int x = 100;
-    int a = 200;
-
-    int *p = &a;
-    p = p - 1;
-
-    return *p;
-}
-```
-
 ### collections
-
-```c
-int main() {
-    int a[2] = {1, 2};
-    return a[0];
-}
-```
-
-```c
-int main() {
-    int a[2];
-    *a = 1;
-    return a[0];
-}
-```
-
-```c
-int main() {
-    int a[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-    return a[9];
-}
-```
-
-```c
-int main() {
-    int a[2];
-    a[0] = 1;
-    return a[0];
-}
-```
 
 ```c
 int main() {
     int a[2];
     *a = 1;
     return *a;
+}
+```
+
+```c
+int main() {
+    int a[2];
+    *a = 1;
+    return a[0];
 }
 ```
 
@@ -338,16 +186,8 @@ int main() {
 
 ```c
 int main() {
-    int a[2];
-    a[0] = 1;
-    return *a;
-}
-```
-
-```c
-int main() {
-    char a[3] = "abc";
-    return 0;
+    int a[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    return a[9];
 }
 ```
 
@@ -366,18 +206,6 @@ int main() {
 ```
 
 ### branches
-
-```c
-int main() {
-    int foo = 10;
-    int z = 0;
-    if (foo / 2 == 2)
-        z = 50;
-    else
-        z = 100;
-    return foo + z;
-}
-```
 
 ```c
 int main() {
@@ -406,7 +234,9 @@ int main() {
 ```c
 int main() {
     int i = 0;
-    while (i < 10) i = i + 1;
+    while (i < 10) {
+      i = i + 1
+    };
     return i;
 }
 ```
